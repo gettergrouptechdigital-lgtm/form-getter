@@ -1464,10 +1464,11 @@ if(window.claude && window.claude.use){
 var PDF_MX = 10, PDF_PW = 210, PDF_PH = 297;
 var PDF_RIGHT = PDF_PW - PDF_MX, PDF_LEFT = PDF_MX, PDF_CW = PDF_RIGHT - PDF_LEFT;
 var HEBREW_RE = /[֐-׿]/;
-// All PDF text is drawn 20% larger than its base point size (requested):
-// every place a font size reaches doc.setFontSize() funnels through pfs()
-// below, so this one constant scales the whole document uniformly.
-var PDF_FONT_SCALE = 1.2;
+// PDF text size multiplier. Every place a font size reaches
+// doc.setFontSize() funnels through pfs() below, so this one constant
+// scales the whole document uniformly (kept at 1 = original PDF sizes,
+// per request, even though the on-screen form's fonts were enlarged 20%).
+var PDF_FONT_SCALE = 1;
 function pfs(sz){ return (sz||9) * PDF_FONT_SCALE; }
 
 function ensurePdfFonts(doc){
@@ -1617,9 +1618,10 @@ function hrule(doc, x1, x2, y, gray){
 // Places the captured customer signature image just above its signature line,
 // fitted into the column (colRight..colRight-colW) without distorting its
 // aspect ratio. No-op if the customer hasn't signed on screen.
-function drawSignatureImage(doc, sigData, colRight, colW, lineY){
+function drawSignatureImage(doc, sigData, colRight, colW, lineY, maxH){
   if(!sigData) return;
-  var maxH = 10, maxW = colW - 4;
+  maxH = maxH || 10;
+  var maxW = colW - 4;
   var w = maxW, h = w / sigData.ratio;
   if(h > maxH){ h = maxH; w = h * sigData.ratio; }
   var x = colRight - colW/2 - w/2;
@@ -1627,18 +1629,20 @@ function drawSignatureImage(doc, sigData, colRight, colW, lineY){
   try{ doc.addImage(sigData.url, 'PNG', x, y, w, h); }catch(e){ console.error('signature image failed to embed', e); }
 }
 
-// Places the customer's photographed stamp centered under the signature
-// column, starting at topY. Returns the rendered height (0 if no stamp),
-// so the caller can push subsequent content down by that much.
-function drawStampImage(doc, stampData, colRight, colW, topY){
+// Places the customer's photographed stamp just above the (same) signature
+// line, in its own column — used side-by-side with the signature image, to
+// its left, rather than stacked underneath it.
+function drawStampImage(doc, stampData, colRight, colW, lineY, maxH){
   if(!stampData) return 0;
-  var maxH = 18, maxW = colW - 6;
+  maxH = maxH || 12;
+  var maxW = colW - 4;
   var w = maxW, h = w / stampData.ratio;
   if(h > maxH){ h = maxH; w = h * stampData.ratio; }
   var x = colRight - colW/2 - w/2;
+  var y = lineY - h - 1;
   var fmtType = /^data:image\/png/i.test(stampData.url) ? 'PNG' : 'JPEG';
-  try{ doc.addImage(stampData.url, fmtType, x, topY, w, h); }catch(e){
-    try{ doc.addImage(stampData.url, fmtType==='PNG'?'JPEG':'PNG', x, topY, w, h); }
+  try{ doc.addImage(stampData.url, fmtType, x, y, w, h); }catch(e){
+    try{ doc.addImage(stampData.url, fmtType==='PNG'?'JPEG':'PNG', x, y, w, h); }
     catch(e2){ console.error('stamp image failed to embed', e2); return 0; }
   }
   return h;
@@ -1795,10 +1799,10 @@ async function buildOrderPdf(){
     doc.addImage(logo.url, 'PNG', PDF_RIGHT-lw, 9, lw, lh);
   }
   drawMixedRTL(doc, 'טופס הזמנה', PDF_PW/2, 17, {fontStyle:'bold', fontSize:17, color:[17,17,17], align:'center'});
-  var infoRightX = PDF_LEFT + 62, infoY = 12;
-  rtext(doc, "מס' הזמנה: " + val('orderNo'), infoRightX, infoY, 'normal', 8.5); infoY += 3.6;
-  rtext(doc, "מס' סוכן: " + val('agentNo'), infoRightX, infoY, 'normal', 8.5); infoY += 3.6;
-  rtext(doc, 'תאריך: ' + fmtDate(val('orderDate')), infoRightX, infoY, 'normal', 8.5);
+  var infoY = 12;
+  drawMixedRTL(doc, "מס' הזמנה: " + val('orderNo'), PDF_LEFT, infoY, {fontStyle:'normal', fontSize:8.5, align:'left'}); infoY += 3.6;
+  drawMixedRTL(doc, "מס' סוכן: " + val('agentNo'), PDF_LEFT, infoY, {fontStyle:'normal', fontSize:8.5, align:'left'}); infoY += 3.6;
+  drawMixedRTL(doc, 'תאריך: ' + fmtDate(val('orderDate')), PDF_LEFT, infoY, {fontStyle:'normal', fontSize:8.5, align:'left'});
   doc.setDrawColor(200,0,95); doc.setLineWidth(0.6); doc.line(PDF_LEFT, ctx.y, PDF_RIGHT, ctx.y);
   ctx.y += 6;
 
@@ -1831,7 +1835,7 @@ async function buildOrderPdf(){
     [{label:'מחיר פ"מ שחור', value: val('priceMono') ? (val('priceMono')+' ש"ח') : ''}, {label:'מחיר פ"ח צבע', value: val('priceColor') ? (val('priceColor')+' ש"ח') : ''}, {label:'מחיר פ"מ סריקה', value: val('priceScan') ? (val('priceScan')+' ש"ח') : ''}],
     [{label:'מינימום צילומים שחור', value: val('minPrintsMono') ? (val('minPrintsMono')+' ('+minUnit+')') : ''}, {label:'מינימום צילומים צבע', value: val('minPrintsColor') ? (val('minPrintsColor')+' ('+minUnit+')') : ''}, null],
     [{label:'הצמדה', value: val('linkage')}, {label:'LFM', value: checked('lfm') ? 'כן' : 'לא'}, {label:'טרייד אין', value: val('tradeInModel') ? (val('tradeInModel') + (val('tradeInCredit') ? (' · זיכוי '+fmt(val('tradeInCredit'))) : '')) : 'ללא'}]
-  ], 3, {lineH:3.6, fontSize:8.3});
+  ], 3, {lineH:4.0, fontSize:8.3});
   var hasVol = val('volMono') || val('volColor');
   if(hasVol){
     var volCtx = {y: ctx.y};
@@ -1864,10 +1868,10 @@ async function buildOrderPdf(){
   });
   drawItemsTable(doc, ctx, [
     {label:'דגם / אביזר', width:66, key:'name'},
-    {label:'מק"ט', width:30, key:'mekt'},
+    {label:'מק"ט', width:45, key:'mekt'},
     {label:'כמות', width:24, key:'qty'},
     {label:'מחיר ליחידה', width:34, key:'price'},
-    {label:'סה"כ', width:36, key:'total'}
+    {label:'סה"כ', width:21, key:'total'}
   ], rows);
   ctx.y += 2;
   pdfCheckBreak(doc, ctx, 8);
@@ -1897,23 +1901,24 @@ async function buildOrderPdf(){
   var sigLineY = ctx.y + 12;
   hrule(doc, sig1R-sigColW, sig1R, sigLineY, 20);
   hrule(doc, sig2R-sigColW, sig2R, sigLineY, 20);
-  drawSignatureImage(doc, getSignatureImage(), sig1R, sigColW, sigLineY);
+
+  // Photographed stamp (if the agent captured one) sits to the LEFT of the
+  // customer's signature, sharing the same column and baseline, rather than
+  // stacked underneath it: the column splits into a stamp sub-column (left)
+  // and a narrower signature sub-column (right).
+  var stampData = getStampPhoto();
+  if(stampData){
+    var stampGap = 3, stampSubW = sigColW * 0.42, sigSubW = sigColW - stampSubW - stampGap;
+    var stampSubR = sig1R - sigSubW - stampGap;
+    drawSignatureImage(doc, getSignatureImage(), sig1R, sigSubW, sigLineY, 12);
+    drawStampImage(doc, stampData, stampSubR, stampSubW, sigLineY, 12);
+  } else {
+    drawSignatureImage(doc, getSignatureImage(), sig1R, sigColW, sigLineY);
+  }
+
   drawMixedRTL(doc, 'תאריך, שם, חותמת וחתימת המזמין', sig1R - sigColW/2, sigLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
   drawMixedRTL(doc, 'תאריך, שם, חותמת וחתימת נציג גטר גרופ בע"מ', sig2R - sigColW/2, sigLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
   ctx.y = sigLineY + 8;
-
-  // Photographed stamp (if the agent captured one) goes below the customer's
-  // signature line, in the same column.
-  var stampData = getStampPhoto();
-  if(stampData){
-    pdfCheckBreak(doc, ctx, 22);
-    var stampTopY = ctx.y;
-    var stampH = drawStampImage(doc, stampData, sig1R, sigColW, stampTopY);
-    if(stampH){
-      drawMixedRTL(doc, 'חותמת', sig1R - sigColW/2, stampTopY + stampH + 3, {fontStyle:'normal', fontSize:7.6, color:[120,120,120], align:'center'});
-      ctx.y = stampTopY + stampH + 7;
-    }
-  }
 
   pdfCheckBreak(doc, ctx, 12);
   drawMixedRTL(doc, 'לשימוש משרדי בלבד', PDF_RIGHT, ctx.y, {fontStyle:'bold', fontSize:9.5, color:[17,17,17], align:'right'});
@@ -1947,9 +1952,8 @@ async function buildAssemblyPdf(){
   drawMixedRTL(doc, 'גטר גרופ בע"מ', PDF_RIGHT, 11, {fontStyle:'bold', fontSize:11, color:[17,17,17], align:'right'});
   drawMixedRTL(doc, 'הוראות הרכבה והתקנה ללקוח', PDF_RIGHT, 15.5, {fontStyle:'normal', fontSize:8, color:[17,17,17], align:'right'});
   drawMixedRTL(doc, 'טופס הרכבה', PDF_PW/2, 15, {fontStyle:'bold', fontSize:17, color:[17,17,17], align:'center'});
-  var infoRightX = PDF_LEFT + 62;
-  rtext(doc, "הזמנת סוכן מס': " + val('orderNo'), infoRightX, 12, 'normal', 8.5);
-  rtext(doc, 'תאריך: ' + fmtDate(val('orderDate')), infoRightX, 16, 'normal', 8.5);
+  drawMixedRTL(doc, "הזמנת סוכן מס': " + val('orderNo'), PDF_LEFT, 12, {fontStyle:'normal', fontSize:8.5, align:'left'});
+  drawMixedRTL(doc, 'תאריך: ' + fmtDate(val('orderDate')), PDF_LEFT, 16, {fontStyle:'normal', fontSize:8.5, align:'left'});
   doc.setDrawColor(200,0,95); doc.setLineWidth(0.6); doc.line(PDF_LEFT, ctx.y, PDF_RIGHT, ctx.y);
   ctx.y += 6;
 
@@ -1998,11 +2002,11 @@ async function buildAssemblyPdf(){
   });
   drawItemsTable(doc, ctx, [
     {label:'דגם', width:34, key:'model'},
-    {label:'אביזרים', width:48, key:'acc'},
-    {label:'מק"ט', width:26, key:'mekt'},
-    {label:'משקל כולל (ק"ג)', width:30, key:'weight'},
-    {label:"רוחב מינ' (ס\"מ)", width:30, key:'width'},
-    {label:'כמות', width:22, key:'qty'}
+    {label:'אביזרים', width:56, key:'acc'},
+    {label:'מק"ט', width:28, key:'mekt'},
+    {label:'משקל כולל (ק"ג)', width:26, key:'weight'},
+    {label:"רוחב מינ' (ס\"מ)", width:26, key:'width'},
+    {label:'כמות', width:20, key:'qty'}
   ], arows);
   ctx.y += 2;
   if(val('returnMachines')){
