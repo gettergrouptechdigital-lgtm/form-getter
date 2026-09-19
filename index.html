@@ -59,6 +59,7 @@
   --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box}
+html{overflow-x:hidden}
 body{
   background:var(--bg);
   color:var(--ink);
@@ -66,6 +67,8 @@ body{
   direction:rtl;
   padding-inline:16px;
   font-variant-numeric:tabular-nums;
+  overflow-x:hidden;
+  max-width:100vw;
 }
 h1,h2,h3{font-family:'Frank Ruhl Libre',serif; text-wrap:balance; margin:0}
 ::selection{background:var(--accent-soft)}
@@ -1226,19 +1229,25 @@ function drawRTL(doc, text, x, y, opts){
 }
 
 function rtext(doc, s, x, y, fontStyle, fontSize, color){
-  drawRTL(doc, s, x, y, {fontStyle:fontStyle, fontSize:fontSize, color:color, align:'right'});
+  drawMixedRTL(doc, s, x, y, {fontStyle:fontStyle, fontSize:fontSize, color:color, align:'right'});
 }
 
 // Draws text that mixes a Hebrew phrase with more than one separate Latin/
 // digit chunk (e.g. "INEO 651i — מכונת צילום ש/ל A3": a model code, a dash,
-// and a Hebrew description that itself ends in a paper-size code). A single
-// drawRTL()/hebFix() call only compensates for ONE embedded Latin run inside
-// an otherwise-Hebrew sentence; jsPDF's R2L reverses the WHOLE string as one
-// unit, so with a Latin run at BOTH ends the compensation cancels out wrong
-// and the Hebrew words come out visually scrambled. Fix: split on whitespace
-// and draw each Hebrew or Latin/digit chunk as its own call, positioned
-// right-to-left by hand, so jsPDF's reversal only ever sees one script at a
-// time. x is the right edge to align the whole run to. Returns rendered width.
+// and a Hebrew description that itself ends in a paper-size code, or a free-
+// text field like a street address that mixes Hebrew and a Latin name). A
+// single drawRTL()/hebFix() call only compensates for ONE embedded Latin run
+// inside an otherwise-Hebrew sentence; jsPDF's R2L reverses the WHOLE string
+// as one unit, so with more than one separate Latin/Hebrew block the
+// compensation cancels out wrong and the text comes out visually scrambled.
+// Fix: split on whitespace and draw each word as its OWN drawRTL() call,
+// positioned right-to-left by hand via a running cursor — every call still
+// goes through the normal hebFix()+global-R2L path (never overridden), which
+// is what keeps a plain multi-word Hebrew sentence rendering exactly as
+// before; only the manual per-word positioning is new. Safe to use as a
+// drop-in replacement for drawRTL/rtext everywhere, including plain single-
+// script text. x is the right edge to align the whole run to (or left/center
+// per opts.align, matching drawRTL). Returns the rendered width.
 function drawMixedRTL(doc, text, xRight, y, opts){
   opts = opts || {};
   text = (text===null||text===undefined) ? '' : String(text);
@@ -1247,18 +1256,62 @@ function drawMixedRTL(doc, text, xRight, y, opts){
   var c = opts.color || [17,17,17];
   doc.setTextColor(c[0],c[1],c[2]);
   if(!text) return 0;
-  var parts = text.split(/(\s+)/).filter(function(p){ return p.length; });
+  // A string with no Hebrew at all (a pure English/code sentence, e.g. a
+  // connector name) must NOT be split word-by-word: splitting would lay its
+  // words out right-to-left, reversing normal English reading order. Only
+  // hebFix()'s single whole-string compensation is needed here, exactly as
+  // before this helper existed.
+  if(!HEBREW_RE.test(text)){
+    return drawRTL(doc, text, xRight, y, opts);
+  }
+  var align = opts.align||'right';
+  // For left/center alignment we don't know the total width up front (it
+  // depends on per-word hebFix'd glyph widths), so measure with a throwaway
+  // pass first, then draw right-aligned from the resolved start position.
+  var totalW = drawMixedRTLRun(doc, text, 0, y, opts, true);
+  var startX;
+  if(align==='left') startX = xRight + totalW;
+  else if(align==='center') startX = xRight + totalW/2;
+  else startX = xRight;
+  drawMixedRTLRun(doc, text, startX, y, opts, false);
+  return totalW;
+}
+
+// A word is its own "run" (Hebrew or Latin/digit) unless it sits next to
+// another word of the SAME script, in which case they merge into one run
+// (e.g. "Ben" + "Gurion" -> one Latin run "Ben Gurion") so a multi-word
+// Latin/Hebrew phrase keeps its own internal left-to-right/right-to-left
+// reading order instead of being scattered word-by-word.
+// Any word with no Hebrew letters in it (a code, an English word, bare
+// punctuation like "—" or "[") is grouped as a non-Hebrew run: hebFix()'s
+// plain "no Hebrew here" reversal is correct for such a run regardless of
+// what it contains, so there is no need to also require it to be strictly
+// alphanumeric — that stricter check used to miss things like "CONNECTOR:"
+// (trailing punctuation) and send them down the Hebrew-sentence path
+// instead, which mishandles a Latin run sitting at the very end of a string.
+function isLatinWord(w){
+  return !HEBREW_RE.test(w);
+}
+function drawMixedRTLRun(doc, text, xRight, y, opts, measureOnly){
+  var words = text.split(/\s+/).filter(function(w){ return w.length; });
+  var runs = [];
+  words.forEach(function(w){
+    var cls = isLatinWord(w) ? 'latin' : 'other';
+    var last = runs[runs.length-1];
+    if(last && last.cls===cls) last.words.push(w);
+    else runs.push({cls:cls, words:[w]});
+  });
   var cursor = xRight;
   var spaceW = doc.getTextWidth(' ');
-  parts.forEach(function(p){
-    if(/^\s+$/.test(p)){ cursor -= spaceW * p.length; return; }
-    var isLatin = /^[A-Za-z0-9]+(?:[\-.,\/:+][A-Za-z0-9]+)*$/.test(p) && !HEBREW_RE.test(p);
+  var c = opts.color || [17,17,17];
+  runs.forEach(function(run, idx){
+    if(idx>0) cursor -= spaceW;
+    var runText = run.words.join(' ');
     var w;
-    if(isLatin){
-      doc.text(p, cursor, y, {align:'right', R2L:false});
-      w = doc.getTextWidth(p);
+    if(measureOnly){
+      w = doc.getTextWidth(hebFix(runText));
     } else {
-      w = drawRTL(doc, p, cursor, y, {fontStyle:opts.fontStyle, fontSize:opts.fontSize, color:c, align:'right'});
+      w = drawRTL(doc, runText, cursor, y, {fontStyle:opts.fontStyle, fontSize:opts.fontSize, color:c, align:'right'});
     }
     cursor -= w;
   });
@@ -1329,14 +1382,14 @@ function drawField(doc, ctx, label, value, xRight, colW, opts){
   var lineH = opts.lineH || 3.7;
   pdfCheckBreak(doc, ctx, lineH+1);
   var labelStr = String(label) + ':';
-  var labelW = drawRTL(doc, labelStr, xRight, ctx.y, {fontStyle:'bold', fontSize:fs, color:[60,60,60], align:'right'});
+  var labelW = drawMixedRTL(doc, labelStr, xRight, ctx.y, {fontStyle:'bold', fontSize:fs, color:[60,60,60], align:'right'});
   var valueMaxW = Math.max(colW - labelW - 1.5, 8);
   var valLines = wrapWords(doc, value||'', valueMaxW, 'normal', fs);
-  drawRTL(doc, valLines[0]||'', xRight - labelW - 1.5, ctx.y, {fontStyle:'normal', fontSize:fs, color:[17,17,17], align:'right'});
+  drawMixedRTL(doc, valLines[0]||'', xRight - labelW - 1.5, ctx.y, {fontStyle:'normal', fontSize:fs, color:[17,17,17], align:'right'});
   for(var i=1;i<valLines.length;i++){
     ctx.y += lineH;
     pdfCheckBreak(doc, ctx, lineH+1);
-    drawRTL(doc, valLines[i], xRight, ctx.y, {fontStyle:'normal', fontSize:fs, color:[17,17,17], align:'right'});
+    drawMixedRTL(doc, valLines[i], xRight, ctx.y, {fontStyle:'normal', fontSize:fs, color:[17,17,17], align:'right'});
   }
   hrule(doc, xRight-colW, xRight, ctx.y+1.2);
   ctx.y += lineH;
@@ -1435,7 +1488,7 @@ async function buildOrderPdf(){
     var lw = 26, lh = lw * (logo.h/logo.w);
     doc.addImage(logo.url, 'PNG', PDF_RIGHT-lw, 9, lw, lh);
   }
-  drawRTL(doc, 'טופס הזמנה', PDF_PW/2, 17, {fontStyle:'bold', fontSize:17, color:[17,17,17], align:'center'});
+  drawMixedRTL(doc, 'טופס הזמנה', PDF_PW/2, 17, {fontStyle:'bold', fontSize:17, color:[17,17,17], align:'center'});
   var infoRightX = PDF_LEFT + 62, infoY = 12;
   rtext(doc, "מס' הזמנה: " + val('orderNo'), infoRightX, infoY, 'normal', 8.5); infoY += 3.6;
   rtext(doc, "מס' סוכן: " + val('agentNo'), infoRightX, infoY, 'normal', 8.5); infoY += 3.6;
@@ -1483,7 +1536,7 @@ async function buildOrderPdf(){
     ctx.y += 1;
     wrapWords(doc, 'הערות: ' + val('dealNotes'), PDF_CW, 'normal', 8).forEach(function(l){
       pdfCheckBreak(doc, ctx, 3.8);
-      drawRTL(doc, l, PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:8, color:[80,80,80], align:'right'});
+      drawMixedRTL(doc, l, PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:8, color:[80,80,80], align:'right'});
       ctx.y += 3.8;
     });
   }
@@ -1512,7 +1565,7 @@ async function buildOrderPdf(){
   ], rows);
   ctx.y += 2;
   pdfCheckBreak(doc, ctx, 8);
-  drawRTL(doc, 'סה"כ להזמנה: ' + fmt(subtotal), PDF_RIGHT, ctx.y+4, {fontStyle:'bold', fontSize:10.5, color:[17,17,17], align:'right'});
+  drawMixedRTL(doc, 'סה"כ להזמנה: ' + fmt(subtotal), PDF_RIGHT, ctx.y+4, {fontStyle:'bold', fontSize:10.5, color:[17,17,17], align:'right'});
   ctx.y += 9;
 
   sectionTitle(doc, ctx, 'תשלום');
@@ -1528,7 +1581,7 @@ async function buildOrderPdf(){
   var legalText = 'חתימת המזמין על מסמך זה והסדרת התשלומים מהווים קבלת ההצעה ומעידים על הסכמתו של המזמין להתקשר עם גטר גרופ בע"מ בהסכם זה. למרות האמור לעיל יכנס הסכם זה לתקפו רק לאחר שיאושר ויוחתם על ידי המשרד הראשי של חברת גטר גרופ בע"מ. מחירי השירות אינם כוללים מע"מ. ולראייה באו הצדדים על החתום:';
   wrapWords(doc, legalText, PDF_CW, 'normal', 7.6).forEach(function(l){
     pdfCheckBreak(doc, ctx, 3.3);
-    drawRTL(doc, l, PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:7.6, color:[70,70,70], align:'right'});
+    drawMixedRTL(doc, l, PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:7.6, color:[70,70,70], align:'right'});
     ctx.y += 3.3;
   });
   ctx.y += 4;
@@ -1539,12 +1592,12 @@ async function buildOrderPdf(){
   hrule(doc, sig1R-sigColW, sig1R, sigLineY, 20);
   hrule(doc, sig2R-sigColW, sig2R, sigLineY, 20);
   drawSignatureImage(doc, getSignatureImage(), sig1R, sigColW, sigLineY);
-  drawRTL(doc, 'תאריך, שם, חותמת וחתימת המזמין', sig1R - sigColW/2, sigLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
-  drawRTL(doc, 'תאריך, שם, חותמת וחתימת נציג גטר גרופ בע"מ', sig2R - sigColW/2, sigLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
+  drawMixedRTL(doc, 'תאריך, שם, חותמת וחתימת המזמין', sig1R - sigColW/2, sigLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
+  drawMixedRTL(doc, 'תאריך, שם, חותמת וחתימת נציג גטר גרופ בע"מ', sig2R - sigColW/2, sigLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
   ctx.y = sigLineY + 8;
 
   pdfCheckBreak(doc, ctx, 12);
-  drawRTL(doc, 'לשימוש משרדי בלבד', PDF_RIGHT, ctx.y, {fontStyle:'bold', fontSize:9.5, color:[17,17,17], align:'right'});
+  drawMixedRTL(doc, 'לשימוש משרדי בלבד', PDF_RIGHT, ctx.y, {fontStyle:'bold', fontSize:9.5, color:[17,17,17], align:'right'});
   ctx.y += 4;
   var officeLineH = 6, baseLines = 2, extraLines = 2;
   var remaining = (PDF_PH - 14) - ctx.y;
@@ -1552,7 +1605,7 @@ async function buildOrderPdf(){
   for(var oi=0; oi<totalLines; oi++){
     hrule(doc, PDF_LEFT, PDF_RIGHT, ctx.y, 190);
     if(oi===0){
-      drawRTL(doc, '30/100', PDF_LEFT, ctx.y-1.2, {fontStyle:'normal', fontSize:7, color:[120,120,120], align:'left'});
+      drawMixedRTL(doc, '30/100', PDF_LEFT, ctx.y-1.2, {fontStyle:'normal', fontSize:7, color:[120,120,120], align:'left'});
     }
     ctx.y += officeLineH;
   }
@@ -1561,7 +1614,7 @@ async function buildOrderPdf(){
   pdfCheckBreak(doc, ctx, 12);
   var dmColW = PDF_CW/3, dmLineY = ctx.y + 10;
   hrule(doc, PDF_RIGHT-dmColW, PDF_RIGHT, dmLineY, 20);
-  drawRTL(doc, 'תאריך, שם וחתימת מנהל גטר גרופ בע"מ חטיבת טק דיגיטל', PDF_RIGHT - dmColW/2, dmLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
+  drawMixedRTL(doc, 'תאריך, שם וחתימת מנהל גטר גרופ בע"מ חטיבת טק דיגיטל', PDF_RIGHT - dmColW/2, dmLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
 
   return doc;
 }
@@ -1572,9 +1625,9 @@ async function buildAssemblyPdf(){
   ensurePdfFonts(doc);
   var ctx = {y:24};
 
-  drawRTL(doc, 'גטר גרופ בע"מ', PDF_RIGHT, 11, {fontStyle:'bold', fontSize:11, color:[17,17,17], align:'right'});
-  drawRTL(doc, 'הוראות הרכבה והתקנה ללקוח', PDF_RIGHT, 15.5, {fontStyle:'normal', fontSize:8, color:[17,17,17], align:'right'});
-  drawRTL(doc, 'טופס הרכבה', PDF_PW/2, 15, {fontStyle:'bold', fontSize:17, color:[17,17,17], align:'center'});
+  drawMixedRTL(doc, 'גטר גרופ בע"מ', PDF_RIGHT, 11, {fontStyle:'bold', fontSize:11, color:[17,17,17], align:'right'});
+  drawMixedRTL(doc, 'הוראות הרכבה והתקנה ללקוח', PDF_RIGHT, 15.5, {fontStyle:'normal', fontSize:8, color:[17,17,17], align:'right'});
+  drawMixedRTL(doc, 'טופס הרכבה', PDF_PW/2, 15, {fontStyle:'bold', fontSize:17, color:[17,17,17], align:'center'});
   var infoRightX = PDF_LEFT + 62;
   rtext(doc, "הזמנת סוכן מס': " + val('orderNo'), infoRightX, 12, 'normal', 8.5);
   rtext(doc, 'תאריך: ' + fmtDate(val('orderDate')), infoRightX, 16, 'normal', 8.5);
@@ -1600,7 +1653,7 @@ async function buildAssemblyPdf(){
   ctx.y += 2;
 
   pdfCheckBreak(doc, ctx, 8);
-  drawRTL(doc, 'חיבור לענן — סוג CONNECTOR:', PDF_RIGHT, ctx.y, {fontStyle:'bold', fontSize:8.6, color:[60,60,60], align:'right'});
+  drawMixedRTL(doc, 'חיבור לענן — סוג CONNECTOR:', PDF_RIGHT, ctx.y, {fontStyle:'bold', fontSize:8.6, color:[60,60,60], align:'right'});
   ctx.y += 4.2;
   var connLines = CONNECTORS.map(function(c,i){
     var on = document.getElementById('conn'+i).checked;
@@ -1608,7 +1661,7 @@ async function buildAssemblyPdf(){
   });
   for(var ci=0; ci<connLines.length; ci+=2){
     pdfCheckBreak(doc, ctx, 4);
-    drawRTL(doc, connLines.slice(ci, ci+2).join('     '), PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:7.8, color:[17,17,17], align:'right'});
+    drawMixedRTL(doc, connLines.slice(ci, ci+2).join('     '), PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:7.8, color:[17,17,17], align:'right'});
     ctx.y += 4;
   }
   ctx.y += 3;
@@ -1636,7 +1689,7 @@ async function buildAssemblyPdf(){
   if(val('returnMachines')){
     wrapWords(doc, 'מכונות להחזרה: ' + val('returnMachines'), PDF_CW, 'normal', 8).forEach(function(l){
       pdfCheckBreak(doc, ctx, 3.8);
-      drawRTL(doc, l, PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:8, color:[80,80,80], align:'right'});
+      drawMixedRTL(doc, l, PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:8, color:[80,80,80], align:'right'});
       ctx.y += 3.8;
     });
   }
@@ -1664,7 +1717,7 @@ async function buildAssemblyPdf(){
   doc.roundedRect(PDF_LEFT, boxTop, PDF_CW, boxH, 1.2, 1.2);
   var ry = boxTop+4.5;
   reqLines.forEach(function(l){
-    drawRTL(doc, l, PDF_RIGHT-2, ry, {fontStyle:'normal', fontSize:8.6, color:[17,17,17], align:'right'});
+    drawMixedRTL(doc, l, PDF_RIGHT-2, ry, {fontStyle:'normal', fontSize:8.6, color:[17,17,17], align:'right'});
     ry += 3.8;
   });
   ctx.y = boxTop + boxH + 8;
@@ -1674,8 +1727,8 @@ async function buildAssemblyPdf(){
   var sigLineY2 = ctx.y + 10;
   hrule(doc, sig1R2-sigColW2, sig1R2, sigLineY2, 20);
   hrule(doc, sig2R2-sigColW2, sig2R2, sigLineY2, 20);
-  drawRTL(doc, 'תאריך, שם וחתימת הטכנאי המרכיב', sig1R2 - sigColW2/2, sigLineY2+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
-  drawRTL(doc, 'תאריך, שם וחתימת הלקוח לאישור קבלה', sig2R2 - sigColW2/2, sigLineY2+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
+  drawMixedRTL(doc, 'תאריך, שם וחתימת הטכנאי המרכיב', sig1R2 - sigColW2/2, sigLineY2+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
+  drawMixedRTL(doc, 'תאריך, שם וחתימת הלקוח לאישור קבלה', sig2R2 - sigColW2/2, sigLineY2+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
 
   return doc;
 }
