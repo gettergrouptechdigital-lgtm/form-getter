@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="טופס גטר">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#f4f1ec;
@@ -63,14 +63,14 @@ html{overflow-x:hidden}
 body{
   background:var(--bg);
   color:var(--ink);
-  font-family:'Rubik',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-family:'Arimo','Arial',system-ui,-apple-system,'Segoe UI',sans-serif;
   direction:rtl;
   padding-inline:16px;
   font-variant-numeric:tabular-nums;
   overflow-x:hidden;
   max-width:100vw;
 }
-h1,h2,h3{font-family:'Frank Ruhl Libre',serif; text-wrap:balance; margin:0}
+h1,h2,h3{font-family:'Arimo','Arial',sans-serif; font-weight:700; text-wrap:balance; margin:0}
 ::selection{background:var(--accent-soft)}
 a{color:var(--accent)}
 
@@ -85,13 +85,43 @@ a{color:var(--accent)}
   width:44px;height:44px;border-radius:10px;flex:none;
   background:linear-gradient(135deg,var(--accent),#7a1e57);
   display:flex;align-items:center;justify-content:center;
-  color:var(--accent-ink);font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:18px;
+  color:var(--accent-ink);font-family:'Arimo','Arial',sans-serif;font-weight:700;font-size:21.6px;
 }
-.brand h1{font-size:22px}
-.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.brand h1{font-size:26.4px}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:15.6px}
+
+.quickActions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.qaBtn{
+  flex:1 1 100px;border:1px solid var(--border);border-radius:9px;padding:9px 10px;
+  font-weight:700;font-size:14.4px;cursor:pointer;background:var(--surface);color:var(--ink);
+}
+.qaBtn:hover{filter:brightness(1.05)}
+.qaBtn-clear{color:var(--warn);border-color:var(--warn)}
+.qaBtn-save{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.qaBtn-load{color:var(--accent);border-color:var(--accent)}
+.qaMsg{
+  font-size:13.2px;border-radius:8px;padding:8px 12px;margin:-6px 0 14px;
+  background:var(--accent-soft);color:var(--accent);font-weight:500;
+}
+.qaMsg.err{background:#fdeaea;color:#b3261e}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .qaMsg.err{background:#3a1414;color:#ff8a80}
+}
+:root[data-theme="dark"] .qaMsg.err{background:#3a1414;color:#ff8a80}
+
+.sigTools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.stampPreview{
+  display:flex;align-items:center;gap:8px;margin-top:8px;border:1px solid var(--border);
+  border-radius:8px;padding:6px 8px;background:var(--surface-2);font-size:12.5px;
+}
+.stampPreview[hidden]{display:none}
+.stampPreview img{height:40px;width:auto;border-radius:5px;border:1px solid var(--border)}
+.stampPreview button{
+  margin-inline-start:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14.4px;
+}
 
 .pill{
-  font-size:12px;color:var(--muted);border:1px solid var(--border);
+  font-size:14.4px;color:var(--muted);border:1px solid var(--border);
   border-radius:999px;padding:5px 12px;background:var(--surface);
 }
 
@@ -102,25 +132,25 @@ a{color:var(--accent)}
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   box-shadow:var(--shadow); padding:20px; margin-bottom:18px;
 }
-.card h2{font-size:16px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.card h2{font-size:19.2px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
 .card h2 .n{
   width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
-  display:flex;align-items:center;justify-content:center;font-family:'Rubik';font-weight:700;font-size:12px;flex:none;
+  display:flex;align-items:center;justify-content:center;font-family:'Arimo','Arial',sans-serif;font-weight:700;font-size:14.4px;flex:none;
 }
-.sub{color:var(--muted);font-size:12.5px;margin:-6px 0 14px}
+.sub{color:var(--muted);font-size:15px;margin:-6px 0 14px}
 
 .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .row:last-child{margin-bottom:0}
 .field{flex:1 1 160px;display:flex;flex-direction:column;gap:5px;min-width:0}
 .field.wide{flex:1 1 100%}
-.field label{font-size:12px;color:var(--muted);font-weight:500}
+.field label{font-size:14.4px;color:var(--muted);font-weight:500}
 input,select,textarea{
   border:1px solid var(--border);border-radius:8px;padding:8px 10px;
   font:inherit;color:var(--ink);background:var(--surface-2);width:100%;
 }
 input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
 textarea{resize:vertical;min-height:56px}
-.checkline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink)}
+.checkline{display:flex;align-items:center;gap:8px;font-size:15.6px;color:var(--ink)}
 .checkline input{width:auto}
 
 .linecard{
@@ -128,59 +158,59 @@ textarea{resize:vertical;min-height:56px}
   margin-bottom:12px;position:relative;
 }
 .linecard .lineHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.linecard .lineHead b{font-size:13px}
+.linecard .lineHead b{font-size:15.6px}
 .removeLine{
-  background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;
+  background:none;border:none;color:var(--muted);cursor:pointer;font-size:14.4px;
   padding:4px 8px;border-radius:6px;
 }
 .removeLine:hover{background:var(--accent-soft);color:var(--accent)}
 
 .accgroup{margin-top:10px;border-top:1px dashed var(--border);padding-top:10px}
-.accgroup .gt{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px;display:flex;gap:6px;align-items:center}
-.accgroup .gt.req::after{content:"חובה";font-size:10px;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 6px;font-weight:600}
+.accgroup .gt{font-size:14.4px;font-weight:600;color:var(--ink);margin-bottom:6px;display:flex;gap:6px;align-items:center}
+.accgroup .gt.req::after{content:"חובה";font-size:12px;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 6px;font-weight:600}
 .opts{display:flex;flex-wrap:wrap;gap:6px}
 .opt{
   display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:8px;
-  padding:5px 9px;font-size:12.5px;background:var(--surface);cursor:pointer;
+  padding:5px 9px;font-size:15px;background:var(--surface);cursor:pointer;
 }
 .opt input{width:auto;margin:0}
 .opt small{color:var(--muted)}
-.hint{font-size:11.5px;color:var(--muted);margin-top:4px}
+.hint{font-size:13.8px;color:var(--muted);margin-top:4px}
 
 .addBtn{
   background:var(--surface);border:1px dashed var(--border);border-radius:8px;
-  padding:9px;width:100%;color:var(--accent);font-weight:600;cursor:pointer;font-size:13px;
+  padding:9px;width:100%;color:var(--accent);font-weight:600;cursor:pointer;font-size:15.6px;
 }
 .addBtn:hover{background:var(--accent-soft)}
 
 .btn{
   background:var(--accent);color:var(--accent-ink);border:none;border-radius:9px;
-  padding:11px 16px;font-weight:600;font-size:14px;cursor:pointer;width:100%;
+  padding:11px 16px;font-weight:600;font-size:16.8px;cursor:pointer;width:100%;
 }
 .btn.secondary{background:var(--surface);color:var(--ink);border:1px solid var(--border)}
 .btn:hover{filter:brightness(1.05)}
 
 .summary{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px}
-.sumRow{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0}
-.sumRow.total{font-weight:700;font-size:16px;border-top:1px solid var(--border);padding-top:10px;margin-top:4px}
+.sumRow{display:flex;justify-content:space-between;font-size:16.2px;padding:3px 0}
+.sumRow.total{font-weight:700;font-size:19.2px;border-top:1px solid var(--border);padding-top:10px;margin-top:4px}
 .sumRow span:last-child{font-variant-numeric:tabular-nums}
 
 .actions{display:flex;flex-direction:column;gap:8px}
 
-.legal{font-size:11px;color:var(--muted);line-height:1.6;background:var(--surface-2);border-radius:8px;padding:10px;margin-top:6px}
+.legal{font-size:13.2px;color:var(--muted);line-height:1.6;background:var(--surface-2);border-radius:8px;padding:10px;margin-top:6px}
 
 .sigWrap{position:relative;border:1px dashed var(--border);border-radius:10px;background:#fff;overflow:hidden}
 #sigCanvas{display:block;width:100%;height:160px;touch-action:none;-webkit-user-select:none;user-select:none}
-.sigHint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9a978f;font-size:13px;pointer-events:none}
+.sigHint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9a978f;font-size:15.6px;pointer-events:none}
 .validationBanner{
   background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);
-  border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.6;font-weight:500;
+  border-radius:9px;padding:10px 12px;font-size:15px;line-height:1.6;font-weight:500;
 }
-.validationBanner b{display:block;margin-bottom:4px;font-size:13px}
+.validationBanner b{display:block;margin-bottom:4px;font-size:15.6px}
 .validationBanner ul{margin:0;padding-inline-start:18px}
 .successBanner{
   background:#e7f6ee;border:1px solid var(--success);color:var(--success);
-  border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.6;font-weight:500;
+  border-radius:9px;padding:10px 12px;font-size:15px;line-height:1.6;font-weight:500;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]) .successBanner{background:#12331f}
@@ -190,13 +220,13 @@ textarea{resize:vertical;min-height:56px}
 /* ---------- OFF-SCREEN PRINT SHEETS (captured to PDF, never shown on screen) ---------- */
 .printSheet{position:absolute;left:-10000px;top:0;background:#fff}
 .printSheet{
-  width:190mm;margin:0 auto;background:#fff;color:#111;font-family:'Rubik',sans-serif;
-  padding:6mm;font-size:10.5px;line-height:1.3;
+  width:190mm;margin:0 auto;background:#fff;color:#111;font-family:'Arimo','Arial',sans-serif;
+  padding:6mm;font-size:12.6px;line-height:1.3;
 }
-.printSheet h2{font-family:'Frank Ruhl Libre',serif;font-size:17px;text-align:center;margin-bottom:1.5mm;color:#111}
+.printSheet h2{font-family:'Arimo','Arial',sans-serif;font-weight:700;font-size:20.4px;text-align:center;margin-bottom:1.5mm;color:#111}
 .psHead{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #c8005f;padding-bottom:2mm;margin-bottom:2.5mm}
-.psHead .co{font-weight:700;font-size:12px}
-.psHead .co small{display:block;font-weight:400;color:#555;font-size:9px}
+.psHead .co{font-weight:700;font-size:14.4px}
+.psHead .co small{display:block;font-weight:400;color:#555;font-size:10.8px}
 .psLogo{height:11mm;width:auto;object-fit:contain}
 .psGrid{display:grid;grid-template-columns:1fr 1fr;gap:1mm 6mm;margin-bottom:2mm}
 .psGrid.psGrid3{grid-template-columns:1fr 1fr 1fr}
@@ -206,28 +236,28 @@ textarea{resize:vertical;min-height:56px}
 .psGrid.psGridTight{gap:0.3mm 6mm}
 .psGrid.psGridTight .f{padding:0.3mm 0}
 .psSection{margin:2.5mm 0}
-.psSection h3{font-size:11.5px;border-right:3px solid #c8005f;padding-right:2mm;margin-bottom:1.5mm}
+.psSection h3{font-size:13.8px;border-right:3px solid #c8005f;padding-right:2mm;margin-bottom:1.5mm}
 table.psTable{width:100%;border-collapse:collapse;margin-top:1mm}
-table.psTable th,table.psTable td{border:1px solid #ccc;padding:1mm 1.5mm;font-size:9.5px;text-align:right}
+table.psTable th,table.psTable td{border:1px solid #ccc;padding:1mm 1.5mm;font-size:11.4px;text-align:right}
 table.psTable th{background:#f4f1ec}
 .psTotals{display:flex;justify-content:flex-end;margin-top:1.5mm}
 .psTotals table{border-collapse:collapse}
-.psTotals td{padding:0.8mm 4mm;font-size:10.5px}
+.psTotals td{padding:0.8mm 4mm;font-size:12.6px}
 .psTotals tr:last-child td{font-weight:700;border-top:1px solid #111}
-.psLegal{font-size:8.3px;color:#444;line-height:1.4;margin-top:2.5mm}
+.psLegal{font-size:9.96px;color:#444;line-height:1.4;margin-top:2.5mm}
 .psSign{display:flex;gap:10mm;margin-top:12mm}
 .psCustGrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:1mm 6mm;margin-bottom:2mm}
 .psCustGrid .pscCol{display:flex;flex-direction:column;min-width:0}
 .psCustGrid .f{border-bottom:1px solid #ccc;padding:0.8mm 0;display:flex;gap:4px;overflow-wrap:anywhere}
 .psCustGrid .f b{font-weight:600;color:#333;white-space:nowrap}
 .psCustGrid .f span{color:#111;overflow-wrap:anywhere}
-.psSign .s{flex:1;border-top:1px solid #111;padding-top:1.5mm;text-align:center;font-size:9.5px}
-.psNote{font-size:9px;color:#666;margin-top:1mm}
+.psSign .s{flex:1;border-top:1px solid #111;padding-top:1.5mm;text-align:center;font-size:11.4px}
+.psNote{font-size:10.8px;color:#666;margin-top:1mm}
 .psOfficeUse{margin-top:6mm;border-top:1px dashed #999;padding-top:3mm}
-.psOfficeUse h3{font-size:11px;border-right:3px solid #c8005f;padding-right:2mm;margin-bottom:3mm;color:#333}
+.psOfficeUse h3{font-size:13.2px;border-right:3px solid #c8005f;padding-right:2mm;margin-bottom:3mm;color:#333}
 .officeLine{border-bottom:1px solid #999;height:6mm;position:relative}
-.officeCode{position:absolute;left:0;top:0;font-size:9px;color:#666}
-.chipRow{display:flex;flex-wrap:wrap;gap:3mm;font-size:10.5px}
+.officeCode{position:absolute;left:0;top:0;font-size:10.8px;color:#666}
+.chipRow{display:flex;flex-wrap:wrap;gap:3mm;font-size:12.6px}
 .chipRow .c{border:1px solid #bbb;border-radius:5px;padding:1mm 2.5mm}
 .chipRow .c.on{background:#c8005f;color:#fff;border-color:#c8005f}
 </style>
@@ -243,6 +273,14 @@ table.psTable th{background:#f4f1ec}
     </div>
     <div class="pill" id="dateNow"></div>
   </div>
+
+  <div class="quickActions">
+    <button class="qaBtn qaBtn-clear" id="btnClearForm" type="button">🗑️ נקה</button>
+    <button class="qaBtn qaBtn-save" id="btnSaveForm" type="button">💾 Save</button>
+    <button class="qaBtn qaBtn-load" id="btnLoadForm" type="button">📂 Load</button>
+    <input type="file" id="loadFileInput" accept="application/json,.json" hidden>
+  </div>
+  <div id="quickActionsMsg" class="qaMsg" hidden></div>
 
   <div class="grid">
     <div>
@@ -411,8 +449,15 @@ table.psTable th{background:#f4f1ec}
           <canvas id="sigCanvas"></canvas>
           <div class="sigHint" id="sigHint">חתמו כאן באצבע</div>
         </div>
-        <div class="row" style="margin-top:8px">
+        <div class="sigTools">
           <button class="btn secondary" id="sigClear" type="button" style="width:auto;padding:8px 18px">נקה חתימה</button>
+          <button class="btn secondary" id="btnStampPhoto" type="button" style="width:auto;padding:8px 18px">📷 צלם חותמת</button>
+          <input type="file" id="stampInput" accept="image/*" capture="environment" hidden>
+        </div>
+        <div class="stampPreview" id="stampPreview" hidden>
+          <img id="stampPreviewImg" alt="חותמת">
+          <span>חותמת צורפה — תוצג מתחת לחתימה בקובץ ה-PDF</span>
+          <button type="button" id="stampRemove" title="הסר חותמת">✕</button>
         </div>
       </div>
     </div>
@@ -976,6 +1021,239 @@ function getSignatureImage(){
   return {url: sigCanvas.toDataURL('image/png'), ratio: ratio};
 }
 
+// Loads a saved signature (a PNG data-URL, from a previously-saved order)
+// back onto the signature pad, scaled to the pad's current on-screen size.
+function setSignatureFromDataUrl(url){
+  return new Promise(function(resolve){
+    if(!url){ resolve(); return; }
+    var img = new Image();
+    img.onload = function(){
+      var rect = sigCanvas.getBoundingClientRect();
+      sigCtx.fillStyle = '#ffffff';
+      sigCtx.fillRect(0, 0, rect.width, rect.height);
+      sigCtx.drawImage(img, 0, 0, rect.width, rect.height);
+      sigHasContent = true;
+      sigHint.style.display = 'none';
+      resolve();
+    };
+    img.onerror = function(){ resolve(); };
+    img.src = url;
+  });
+}
+
+// ---------- "Photograph stamp" (customer's company stamp) ----------
+// Captured via the phone camera (or picked from the gallery); stored as a
+// data-URL + aspect ratio, same shape as getSignatureImage(), and embedded
+// into the order-form PDF just below the customer's signature line.
+var stampPhoto = null; // {url, ratio} | null
+var stampInput = document.getElementById('stampInput');
+var stampPreviewWrap = document.getElementById('stampPreview');
+var stampPreviewImg = document.getElementById('stampPreviewImg');
+
+function renderStampPreview(){
+  if(stampPhoto){
+    stampPreviewImg.src = stampPhoto.url;
+    stampPreviewWrap.hidden = false;
+  } else {
+    stampPreviewImg.removeAttribute('src');
+    stampPreviewWrap.hidden = true;
+  }
+}
+
+function setStampFromDataUrl(url){
+  return new Promise(function(resolve){
+    if(!url){ stampPhoto = null; renderStampPreview(); resolve(); return; }
+    var img = new Image();
+    img.onload = function(){
+      stampPhoto = {url: url, ratio: (img.naturalWidth/img.naturalHeight) || 1};
+      renderStampPreview();
+      resolve();
+    };
+    img.onerror = function(){ resolve(); };
+    img.src = url;
+  });
+}
+
+function getStampPhoto(){ return stampPhoto; }
+
+document.getElementById('btnStampPhoto').addEventListener('click', function(){
+  stampInput.click();
+});
+stampInput.addEventListener('change', function(e){
+  var file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){ setStampFromDataUrl(ev.target.result); };
+  reader.readAsDataURL(file);
+});
+document.getElementById('stampRemove').addEventListener('click', function(){
+  setStampFromDataUrl(null);
+});
+
+// ---------- Clear / Save / Load ----------
+var qaMsgEl = document.getElementById('quickActionsMsg');
+var qaMsgTimer = null;
+function qaMsg(text, isErr){
+  qaMsgEl.textContent = text;
+  qaMsgEl.className = 'qaMsg' + (isErr ? ' err' : '');
+  qaMsgEl.hidden = false;
+  if(qaMsgTimer) clearTimeout(qaMsgTimer);
+  qaMsgTimer = setTimeout(function(){ qaMsgEl.hidden = true; }, 6000);
+}
+
+function slugForFile(s){
+  return String(s||'').trim().replace(/[\\/:*?"<>|]+/g,'_') || 'ללא_מספר';
+}
+
+// Gathers every top-level field (by id, skipping anything inside a dynamic
+// line card and file inputs) plus the item lines, signature and stamp photo
+// into one plain-object snapshot that JSON.stringify can round-trip.
+function collectFormData(){
+  var data = {fields:{}, lines:[], signature:null, stampPhoto:null, savedAt:new Date().toISOString()};
+  document.querySelectorAll('.app input[id], .app select[id], .app textarea[id]').forEach(function(el){
+    if(el.closest('.linecard')) return;
+    if(el.type === 'file') return;
+    data.fields[el.id] = (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value;
+  });
+  lines.forEach(function(l){
+    var accSelections = [];
+    l.el.querySelectorAll('.accHost input').forEach(function(inp){
+      if(inp.checked) accSelections.push({group: inp.dataset.group||'', value: inp.value});
+    });
+    data.lines.push({
+      model: l.model,
+      qty: l.el.querySelector('.qty').value,
+      price: l.el.querySelector('.price').value,
+      accessories: accSelections,
+      manualAccessories: (l.manualAccessories||[]).slice()
+    });
+  });
+  data.signature = sigHasContent ? sigCanvas.toDataURL('image/png') : null;
+  data.stampPhoto = stampPhoto ? stampPhoto.url : null;
+  return data;
+}
+
+function applyLineAccessories(line, accSelections){
+  if(!accSelections || !accSelections.length) return;
+  var inputs = line.el.querySelectorAll('.accHost input');
+  inputs.forEach(function(inp){
+    var match = accSelections.some(function(a){ return a.group===(inp.dataset.group||'') && a.value===inp.value; });
+    if(match) inp.checked = true;
+  });
+}
+
+// Rebuilds the whole form (fields, item lines, signature, stamp) from a
+// snapshot produced by collectFormData() — used by both "Load" and
+// (indirectly) nothing else, kept separate from clearForm().
+async function applyFormData(data){
+  data = data || {};
+  var fields = data.fields || {};
+  Object.keys(fields).forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el || el.closest('.linecard')) return;
+    if(el.type === 'checkbox' || el.type === 'radio') el.checked = !!fields[id];
+    else el.value = fields[id];
+  });
+
+  lines.slice().forEach(function(l){ l.el.remove(); });
+  lines = [];
+  document.getElementById('lines').innerHTML = '';
+  (data.lines||[]).forEach(function(saved){
+    addLine();
+    var line = lines[lines.length-1];
+    if(saved.model){
+      var sel = line.el.querySelector('.modelHost select');
+      sel.value = saved.model;
+      line.model = saved.model;
+    }
+    line.manualAccessories = (saved.manualAccessories||[]).slice();
+    if(line.model) renderAccessories(line);
+    line.el.querySelector('.qty').value = saved.qty || 1;
+    line.el.querySelector('.price').value = saved.price || '';
+    applyLineAccessories(line, saved.accessories);
+  });
+  if(!lines.length) addLine();
+  renumberLines();
+  updateSummary();
+
+  await setSignatureFromDataUrl(data.signature);
+  await setStampFromDataUrl(data.stampPhoto);
+
+  document.getElementById('validationBanner').hidden = true;
+  document.getElementById('successBanner').hidden = true;
+}
+
+function clearForm(){
+  if(!confirm('לנקות את כל הטופס? הפעולה תמחק את כל הפרטים, השורות, החתימה והחותמת שמולאו.')) return;
+  document.querySelectorAll('.app input[id], .app select[id], .app textarea[id]').forEach(function(el){
+    if(el.closest('.linecard')) return;
+    if(el.type === 'file') return;
+    if(el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+    else el.value = '';
+  });
+  document.getElementById('orderDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('minPrintsMonthly').checked = true;
+
+  lines.slice().forEach(function(l){ l.el.remove(); });
+  lines = [];
+  document.getElementById('lines').innerHTML = '';
+  addLine();
+  updateSummary();
+
+  sigCtx.fillStyle = '#ffffff';
+  var rect = sigCanvas.getBoundingClientRect();
+  sigCtx.fillRect(0, 0, rect.width, rect.height);
+  sigHasContent = false;
+  sigHint.style.display = 'flex';
+  setStampFromDataUrl(null);
+
+  document.getElementById('validationBanner').hidden = true;
+  document.getElementById('successBanner').hidden = true;
+  qaMsg('הטופס נוקה.');
+}
+
+// Saves the current form as a JSON file. The "download" attribute's value
+// may include a subfolder path (no ".."), which Chrome — desktop and
+// Android — creates under the device's Downloads folder, so this lands at
+// Downloads/גטר/הזמנות/<file>.json without any extra folder picker.
+function saveOrderToFile(){
+  var data = collectFormData();
+  var name = 'הזמנה_' + slugForFile(data.fields.orderNo) + '_' + (data.fields.orderDate || new Date().toISOString().slice(0,10)) + '.json';
+  var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'גטר/הזמנות/' + name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  qaMsg('נשמר: גטר / הזמנות / ' + name + ' (בתוך תיקיית ההורדות של הטלפון)');
+}
+
+document.getElementById('btnClearForm').addEventListener('click', clearForm);
+document.getElementById('btnSaveForm').addEventListener('click', saveOrderToFile);
+document.getElementById('btnLoadForm').addEventListener('click', function(){
+  document.getElementById('loadFileInput').click();
+});
+document.getElementById('loadFileInput').addEventListener('change', function(e){
+  var file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var data;
+    try{ data = JSON.parse(ev.target.result); }
+    catch(err){ qaMsg('הקובץ שנבחר אינו קובץ הזמנה תקין.', true); return; }
+    applyFormData(data).then(function(){
+      qaMsg('הטופס נטען מהקובץ ' + file.name);
+    });
+  };
+  reader.onerror = function(){ qaMsg('שגיאה בקריאת הקובץ.', true); };
+  reader.readAsText(file);
+});
+
 var minPrintsMonthlyBox = document.getElementById('minPrintsMonthly');
 var minPrintsYearlyBox = document.getElementById('minPrintsYearly');
 minPrintsMonthlyBox.addEventListener('change', function(){
@@ -1161,7 +1439,8 @@ if(window.claude && window.claude.use){
    TEXT-BASED PDF GENERATION
    Native jsPDF text (selectable, tiny file size) instead of a
    screenshot. jsPDF only ships Latin fonts, so a Hebrew+Latin
-   subset of Rubik is embedded (fonts.js).
+   subset of Arimo (a free, metrically Arial-compatible
+   typeface) is embedded (fonts.js).
 
    RTL: jsPDF has no bidi engine — it just places glyphs left to
    right in the order given. For a run of PURE Hebrew, reversing
@@ -1180,13 +1459,18 @@ if(window.claude && window.claude.use){
 var PDF_MX = 10, PDF_PW = 210, PDF_PH = 297;
 var PDF_RIGHT = PDF_PW - PDF_MX, PDF_LEFT = PDF_MX, PDF_CW = PDF_RIGHT - PDF_LEFT;
 var HEBREW_RE = /[֐-׿]/;
+// All PDF text is drawn 20% larger than its base point size (requested):
+// every place a font size reaches doc.setFontSize() funnels through pfs()
+// below, so this one constant scales the whole document uniformly.
+var PDF_FONT_SCALE = 1.2;
+function pfs(sz){ return (sz||9) * PDF_FONT_SCALE; }
 
 function ensurePdfFonts(doc){
-  doc.addFileToVFS('Rubik-Regular.ttf', RUBIK_REGULAR_B64);
-  doc.addFont('Rubik-Regular.ttf', 'Rubik', 'normal');
-  doc.addFileToVFS('Rubik-Bold.ttf', RUBIK_BOLD_B64);
-  doc.addFont('Rubik-Bold.ttf', 'Rubik', 'bold');
-  doc.setFont('Rubik','normal');
+  doc.addFileToVFS('Arimo-Regular.ttf', ARIMO_REGULAR_B64);
+  doc.addFont('Arimo-Regular.ttf', 'Arimo', 'normal');
+  doc.addFileToVFS('Arimo-Bold.ttf', ARIMO_BOLD_B64);
+  doc.addFont('Arimo-Bold.ttf', 'Arimo', 'bold');
+  doc.setFont('Arimo','normal');
   // jsPDF's R2L flips each drawn string into correct RTL visual order. With
   // Hebrew present it already keeps pure-digit runs in normal reading order;
   // only Latin-letter runs (and fully-Latin/digit strings with no Hebrew at
@@ -1218,8 +1502,8 @@ function hebFix(s){
 function drawRTL(doc, text, x, y, opts){
   opts = opts || {};
   text = (text===null||text===undefined) ? '' : String(text);
-  doc.setFont('Rubik', opts.fontStyle||'normal');
-  doc.setFontSize(opts.fontSize||9);
+  doc.setFont('Arimo', opts.fontStyle||'normal');
+  doc.setFontSize(pfs(opts.fontSize));
   var c = opts.color || [17,17,17];
   doc.setTextColor(c[0],c[1],c[2]);
   if(!text) return 0;
@@ -1251,8 +1535,8 @@ function rtext(doc, s, x, y, fontStyle, fontSize, color){
 function drawMixedRTL(doc, text, xRight, y, opts){
   opts = opts || {};
   text = (text===null||text===undefined) ? '' : String(text);
-  doc.setFont('Rubik', opts.fontStyle||'normal');
-  doc.setFontSize(opts.fontSize||9);
+  doc.setFont('Arimo', opts.fontStyle||'normal');
+  doc.setFontSize(pfs(opts.fontSize));
   var c = opts.color || [17,17,17];
   doc.setTextColor(c[0],c[1],c[2]);
   if(!text) return 0;
@@ -1338,6 +1622,23 @@ function drawSignatureImage(doc, sigData, colRight, colW, lineY){
   try{ doc.addImage(sigData.url, 'PNG', x, y, w, h); }catch(e){ console.error('signature image failed to embed', e); }
 }
 
+// Places the customer's photographed stamp centered under the signature
+// column, starting at topY. Returns the rendered height (0 if no stamp),
+// so the caller can push subsequent content down by that much.
+function drawStampImage(doc, stampData, colRight, colW, topY){
+  if(!stampData) return 0;
+  var maxH = 18, maxW = colW - 6;
+  var w = maxW, h = w / stampData.ratio;
+  if(h > maxH){ h = maxH; w = h * stampData.ratio; }
+  var x = colRight - colW/2 - w/2;
+  var fmtType = /^data:image\/png/i.test(stampData.url) ? 'PNG' : 'JPEG';
+  try{ doc.addImage(stampData.url, fmtType, x, topY, w, h); }catch(e){
+    try{ doc.addImage(stampData.url, fmtType==='PNG'?'JPEG':'PNG', x, topY, w, h); }
+    catch(e2){ console.error('stamp image failed to embed', e2); return 0; }
+  }
+  return h;
+}
+
 function pdfCheckBreak(doc, ctx, needed){
   if(ctx.y + needed > PDF_PH - 12){
     doc.addPage();
@@ -1358,8 +1659,8 @@ function sectionTitle(doc, ctx, title){
 
 function wrapWords(doc, text, maxWidth, fontStyle, fontSize){
   text = (text===null||text===undefined) ? '' : String(text).trim();
-  doc.setFont('Rubik', fontStyle||'normal');
-  doc.setFontSize(fontSize||9);
+  doc.setFont('Arimo', fontStyle||'normal');
+  doc.setFontSize(pfs(fontSize));
   if(!text) return [''];
   var words = text.split(/\s+/);
   var lines = [], cur = '';
@@ -1433,7 +1734,7 @@ function drawItemsTable(doc, ctx, columns, rows){
   var xs = [];
   var cx = PDF_RIGHT;
   columns.forEach(function(c){ xs.push(cx); cx -= c.width; });
-  var headerH = 6.5, rowH = 5.4;
+  var headerH = 6.5*PDF_FONT_SCALE, rowH = 5.4*PDF_FONT_SCALE;
   function drawHeader(){
     doc.setFillColor(251,228,238);
     doc.rect(PDF_LEFT, ctx.y, PDF_CW, headerH, 'F');
@@ -1596,6 +1897,19 @@ async function buildOrderPdf(){
   drawMixedRTL(doc, 'תאריך, שם, חותמת וחתימת נציג גטר גרופ בע"מ', sig2R - sigColW/2, sigLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
   ctx.y = sigLineY + 8;
 
+  // Photographed stamp (if the agent captured one) goes below the customer's
+  // signature line, in the same column.
+  var stampData = getStampPhoto();
+  if(stampData){
+    pdfCheckBreak(doc, ctx, 22);
+    var stampTopY = ctx.y;
+    var stampH = drawStampImage(doc, stampData, sig1R, sigColW, stampTopY);
+    if(stampH){
+      drawMixedRTL(doc, 'חותמת', sig1R - sigColW/2, stampTopY + stampH + 3, {fontStyle:'normal', fontSize:7.6, color:[120,120,120], align:'center'});
+      ctx.y = stampTopY + stampH + 7;
+    }
+  }
+
   pdfCheckBreak(doc, ctx, 12);
   drawMixedRTL(doc, 'לשימוש משרדי בלבד', PDF_RIGHT, ctx.y, {fontStyle:'bold', fontSize:9.5, color:[17,17,17], align:'right'});
   ctx.y += 4;
@@ -1679,11 +1993,11 @@ async function buildAssemblyPdf(){
   });
   drawItemsTable(doc, ctx, [
     {label:'דגם', width:34, key:'model'},
-    {label:'אביזרים', width:56, key:'acc'},
-    {label:'מק"ט', width:28, key:'mekt'},
-    {label:'משקל כולל (ק"ג)', width:26, key:'weight'},
-    {label:"רוחב מינ' (ס\"מ)", width:26, key:'width'},
-    {label:'כמות', width:20, key:'qty'}
+    {label:'אביזרים', width:48, key:'acc'},
+    {label:'מק"ט', width:26, key:'mekt'},
+    {label:'משקל כולל (ק"ג)', width:30, key:'weight'},
+    {label:"רוחב מינ' (ס\"מ)", width:30, key:'width'},
+    {label:'כמות', width:22, key:'qty'}
   ], arows);
   ctx.y += 2;
   if(val('returnMachines')){
