@@ -1,0 +1,1833 @@
+<meta charset="utf-8">
+<title>טופס הזמנה גטר</title>
+<meta name="description" content="טופס הזמנה מקוון לסוכנים עם בחירת דגם ואביזרים, המפיק טופס הזמנה וטופס הרכבה כ-PDF">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c8005f">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="טופס גטר">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f1ec;
+  --surface:#ffffff;
+  --surface-2:#fbf9f5;
+  --ink:#211f2e;
+  --muted:#6d6a7c;
+  --border:#e1dcd1;
+  --accent:#c8005f;
+  --accent-ink:#ffffff;
+  --accent-soft:#fbe4ee;
+  --success:#1f8a5c;
+  --warn:#b45309;
+  --radius:12px;
+  --shadow:0 1px 2px rgba(30,20,10,.04), 0 8px 24px rgba(30,20,10,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#171519;
+    --surface:#201d24;
+    --surface-2:#1b1820;
+    --ink:#f0ecf3;
+    --muted:#a8a1b3;
+    --border:#332e3a;
+    --accent:#ff4f96;
+    --accent-ink:#1a0710;
+    --accent-soft:#3a1728;
+    --success:#3fcf8e;
+    --warn:#f0a94e;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#171519;
+  --surface:#201d24;
+  --surface-2:#1b1820;
+  --ink:#f0ecf3;
+  --muted:#a8a1b3;
+  --border:#332e3a;
+  --accent:#ff4f96;
+  --accent-ink:#1a0710;
+  --accent-soft:#3a1728;
+  --success:#3fcf8e;
+  --warn:#f0a94e;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Rubik',system-ui,-apple-system,'Segoe UI',sans-serif;
+  direction:rtl;
+  padding-inline:16px;
+  font-variant-numeric:tabular-nums;
+}
+h1,h2,h3{font-family:'Frank Ruhl Libre',serif; text-wrap:balance; margin:0}
+::selection{background:var(--accent-soft)}
+a{color:var(--accent)}
+
+.app{max-width:1180px;margin:0 auto;padding-block:24px 100px;}
+
+.topbar{
+  display:flex;align-items:center;gap:14px;justify-content:space-between;
+  margin-bottom:22px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{
+  width:44px;height:44px;border-radius:10px;flex:none;
+  background:linear-gradient(135deg,var(--accent),#7a1e57);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--accent-ink);font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:18px;
+}
+.brand h1{font-size:22px}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+
+.pill{
+  font-size:12px;color:var(--muted);border:1px solid var(--border);
+  border-radius:999px;padding:5px 12px;background:var(--surface);
+}
+
+.grid{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:20px; margin-bottom:18px;
+}
+.card h2{font-size:16px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.card h2 .n{
+  width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-family:'Rubik';font-weight:700;font-size:12px;flex:none;
+}
+.sub{color:var(--muted);font-size:12.5px;margin:-6px 0 14px}
+
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.row:last-child{margin-bottom:0}
+.field{flex:1 1 160px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.field.wide{flex:1 1 100%}
+.field label{font-size:12px;color:var(--muted);font-weight:500}
+input,select,textarea{
+  border:1px solid var(--border);border-radius:8px;padding:8px 10px;
+  font:inherit;color:var(--ink);background:var(--surface-2);width:100%;
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+textarea{resize:vertical;min-height:56px}
+.checkline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink)}
+.checkline input{width:auto}
+
+.linecard{
+  border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--surface-2);
+  margin-bottom:12px;position:relative;
+}
+.linecard .lineHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.linecard .lineHead b{font-size:13px}
+.removeLine{
+  background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;
+  padding:4px 8px;border-radius:6px;
+}
+.removeLine:hover{background:var(--accent-soft);color:var(--accent)}
+
+.accgroup{margin-top:10px;border-top:1px dashed var(--border);padding-top:10px}
+.accgroup .gt{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px;display:flex;gap:6px;align-items:center}
+.accgroup .gt.req::after{content:"חובה";font-size:10px;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 6px;font-weight:600}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{
+  display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:8px;
+  padding:5px 9px;font-size:12.5px;background:var(--surface);cursor:pointer;
+}
+.opt input{width:auto;margin:0}
+.opt small{color:var(--muted)}
+.hint{font-size:11.5px;color:var(--muted);margin-top:4px}
+
+.addBtn{
+  background:var(--surface);border:1px dashed var(--border);border-radius:8px;
+  padding:9px;width:100%;color:var(--accent);font-weight:600;cursor:pointer;font-size:13px;
+}
+.addBtn:hover{background:var(--accent-soft)}
+
+.btn{
+  background:var(--accent);color:var(--accent-ink);border:none;border-radius:9px;
+  padding:11px 16px;font-weight:600;font-size:14px;cursor:pointer;width:100%;
+}
+.btn.secondary{background:var(--surface);color:var(--ink);border:1px solid var(--border)}
+.btn:hover{filter:brightness(1.05)}
+
+.summary{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px}
+.sumRow{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0}
+.sumRow.total{font-weight:700;font-size:16px;border-top:1px solid var(--border);padding-top:10px;margin-top:4px}
+.sumRow span:last-child{font-variant-numeric:tabular-nums}
+
+.actions{display:flex;flex-direction:column;gap:8px}
+
+.legal{font-size:11px;color:var(--muted);line-height:1.6;background:var(--surface-2);border-radius:8px;padding:10px;margin-top:6px}
+
+.sigWrap{position:relative;border:1px dashed var(--border);border-radius:10px;background:#fff;overflow:hidden}
+#sigCanvas{display:block;width:100%;height:160px;touch-action:none;-webkit-user-select:none;user-select:none}
+.sigHint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9a978f;font-size:13px;pointer-events:none}
+.validationBanner{
+  background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);
+  border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.6;font-weight:500;
+}
+.validationBanner b{display:block;margin-bottom:4px;font-size:13px}
+.validationBanner ul{margin:0;padding-inline-start:18px}
+.successBanner{
+  background:#e7f6ee;border:1px solid var(--success);color:var(--success);
+  border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.6;font-weight:500;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .successBanner{background:#12331f}
+}
+:root[data-theme="dark"] .successBanner{background:#12331f}
+
+/* ---------- OFF-SCREEN PRINT SHEETS (captured to PDF, never shown on screen) ---------- */
+.printSheet{position:absolute;left:-10000px;top:0;background:#fff}
+.printSheet{
+  width:190mm;margin:0 auto;background:#fff;color:#111;font-family:'Rubik',sans-serif;
+  padding:6mm;font-size:10.5px;line-height:1.3;
+}
+.printSheet h2{font-family:'Frank Ruhl Libre',serif;font-size:17px;text-align:center;margin-bottom:1.5mm;color:#111}
+.psHead{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #c8005f;padding-bottom:2mm;margin-bottom:2.5mm}
+.psHead .co{font-weight:700;font-size:12px}
+.psHead .co small{display:block;font-weight:400;color:#555;font-size:9px}
+.psLogo{height:11mm;width:auto;object-fit:contain}
+.psGrid{display:grid;grid-template-columns:1fr 1fr;gap:1mm 6mm;margin-bottom:2mm}
+.psGrid.psGrid3{grid-template-columns:1fr 1fr 1fr}
+.psGrid .f{border-bottom:1px solid #ccc;padding:0.8mm 0;display:flex;gap:4px}
+.psGrid .f b{font-weight:600;color:#333}
+.psGrid .f span{color:#111}
+.psGrid.psGridTight{gap:0.3mm 6mm}
+.psGrid.psGridTight .f{padding:0.3mm 0}
+.psSection{margin:2.5mm 0}
+.psSection h3{font-size:11.5px;border-right:3px solid #c8005f;padding-right:2mm;margin-bottom:1.5mm}
+table.psTable{width:100%;border-collapse:collapse;margin-top:1mm}
+table.psTable th,table.psTable td{border:1px solid #ccc;padding:1mm 1.5mm;font-size:9.5px;text-align:right}
+table.psTable th{background:#f4f1ec}
+.psTotals{display:flex;justify-content:flex-end;margin-top:1.5mm}
+.psTotals table{border-collapse:collapse}
+.psTotals td{padding:0.8mm 4mm;font-size:10.5px}
+.psTotals tr:last-child td{font-weight:700;border-top:1px solid #111}
+.psLegal{font-size:8.3px;color:#444;line-height:1.4;margin-top:2.5mm}
+.psSign{display:flex;gap:10mm;margin-top:12mm}
+.psCustGrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:1mm 6mm;margin-bottom:2mm}
+.psCustGrid .pscCol{display:flex;flex-direction:column;min-width:0}
+.psCustGrid .f{border-bottom:1px solid #ccc;padding:0.8mm 0;display:flex;gap:4px;overflow-wrap:anywhere}
+.psCustGrid .f b{font-weight:600;color:#333;white-space:nowrap}
+.psCustGrid .f span{color:#111;overflow-wrap:anywhere}
+.psSign .s{flex:1;border-top:1px solid #111;padding-top:1.5mm;text-align:center;font-size:9.5px}
+.psNote{font-size:9px;color:#666;margin-top:1mm}
+.psOfficeUse{margin-top:6mm;border-top:1px dashed #999;padding-top:3mm}
+.psOfficeUse h3{font-size:11px;border-right:3px solid #c8005f;padding-right:2mm;margin-bottom:3mm;color:#333}
+.officeLine{border-bottom:1px solid #999;height:6mm;position:relative}
+.officeCode{position:absolute;left:0;top:0;font-size:9px;color:#666}
+.chipRow{display:flex;flex-wrap:wrap;gap:3mm;font-size:10.5px}
+.chipRow .c{border:1px solid #bbb;border-radius:5px;padding:1mm 2.5mm}
+.chipRow .c.on{background:#c8005f;color:#fff;border-color:#c8005f}
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">GG</div>
+      <div>
+        <h1>טופס הזמנה דיגיטלי — סוכני שטח</h1>
+        <p>גטר גרופ בע"מ</p>
+      </div>
+    </div>
+    <div class="pill" id="dateNow"></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <!-- 1. Agent & customer -->
+      <div class="card">
+        <h2><span class="n">1</span>סוכן ולקוח</h2>
+        <div class="row">
+          <div class="field"><label>מספר הזמנה</label><input id="orderNo"></div>
+          <div class="field"><label>מס' סוכן</label><input id="agentNo"></div>
+          <div class="field"><label>תאריך הזמנה</label><input id="orderDate" type="date"></div>
+          <div class="field"><label>מס' הזמנת לקוח</label><input id="custPO"></div>
+        </div>
+        <div class="row">
+          <div class="field wide"><label>שם לקוח</label><input id="custName" placeholder="שם החברה / הלקוח"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>מספר לקוח</label><input id="custNo"></div>
+          <div class="field"><label>טלפון</label><input id="custPhone"></div>
+          <div class="field"><label>פקס</label><input id="custFax"></div>
+          <div class="field"><label>נייד</label><input id="custMobile"></div>
+        </div>
+        <div class="row">
+          <div class="field wide"><label>כתובת</label><input id="custAddr"></div>
+        </div>
+        <div class="row">
+          <div class="field wide"><label>כתובת לחשבונית / מייל</label><input id="custBillAddr" placeholder="כתובת מייל לחשבונית"></div>
+        </div>
+        <div class="row">
+          <div class="field wide"><label>כתובת לאספקה</label><input id="custShipAddr"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>איש קשר לאספקה</label><input id="shipContact"></div>
+          <div class="field"><label>טלפון איש קשר</label><input id="shipContactPhone"></div>
+          <div class="field"><label>טלפון למונים</label><input id="meterPhone"></div>
+        </div>
+      </div>
+
+      <!-- 2. Deal terms -->
+      <div class="card">
+        <h2><span class="n">2</span>פרטי העסקה</h2>
+        <div class="row">
+          <div class="field wide"><label>תיאור העסקה</label>
+            <select id="dealDesc">
+              <option value="">— בחר —</option>
+              <option value="קנייה">קנייה</option>
+              <option value="שכירות">שכירות</option>
+              <option value="שכירות חודשית">שכירות חודשית</option>
+              <option value="שכר/מכר">שכר/מכר</option>
+            </select>
+          </div>
+          <div class="field"><label>סוג מכונה</label>
+            <select id="dealMachineType">
+              <option value="">— בחר —</option>
+              <option value="חדשה">חדשה</option>
+              <option value="משופצת">משופצת</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label>תקופה (חודשים)</label><input id="dealPeriod" type="number" min="0"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>מחיר פ"מ שחור (ש"ח)</label><input id="priceMono" type="number" step="0.01"></div>
+          <div class="field"><label>מחיר פ"ח צבע (ש"ח)</label><input id="priceColor" type="number" step="0.01"></div>
+          <div class="field"><label>מחיר פ"מ סריקה (ש"ח)</label><input id="priceScan" type="number" step="0.01"></div>
+          <div class="field"><label>הצמדה</label>
+            <select id="linkage"><option value="">ללא</option><option>מדד</option><option>שער דולר</option><option>שער יורו</option></select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label>מינימום צילומים שחור</label><input id="minPrintsMono" type="number" min="0"></div>
+          <div class="field"><label>מינימום צילומים צבע</label><input id="minPrintsColor" type="number" min="0"></div>
+          <div class="field">
+            <label>יחידת זמן למינימום</label>
+            <div class="opts">
+              <label class="opt"><input type="checkbox" id="minPrintsMonthly" checked> חודשי</label>
+              <label class="opt"><input type="checkbox" id="minPrintsYearly"> שנתי</label>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field checkline" style="align-self:center"><input type="checkbox" id="lfm"><label for="lfm">LFM</label></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>טרייד אין — סוג מכונה</label><input id="tradeInModel"></div>
+          <div class="field"><label>סה"כ לזיכוי (₪)</label><input id="tradeInCredit" type="number" step="0.01"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>היקף עבודה — שחור/לבן (חודשי)</label><input id="volMono" type="number" min="0"></div>
+          <div class="field"><label>היקף עבודה — צבע (חודשי)</label><input id="volColor" type="number" min="0"></div>
+        </div>
+        <div class="row">
+          <div class="field wide"><label>הערות</label><textarea id="dealNotes"></textarea></div>
+        </div>
+      </div>
+
+      <!-- 3. Line items -->
+      <div class="card">
+        <h2><span class="n">3</span>דגמים ואביזרים</h2>
+        <p class="sub">בחרו דגם מהרשימה — האביזרים המתאימים לדגם, כולל אלו שחובה לבחור, יופיעו אוטומטית.</p>
+        <div id="lines"></div>
+        <button class="addBtn" id="addLine" type="button">+ הוספת דגם להזמנה</button>
+      </div>
+
+      <!-- 4. Payment -->
+      <div class="card">
+        <h2><span class="n">4</span>תנאי תשלום</h2>
+        <div class="row">
+          <div class="field wide"><label>תנאי תשלום</label><input id="paymentTerms" placeholder="לדוגמה: שוטף + 30"></div>
+          <div class="field"><label>מקדמה (₪)</label><input id="advance" type="number" min="0"></div>
+        </div>
+        <div class="row">
+          <div class="field wide">
+            <label>התקבל</label>
+            <div class="opts">
+              <label class="opt"><input type="checkbox" id="receivedChecks"> צ'קים</label>
+              <label class="opt"><input type="checkbox" id="receivedStandingOrder"> הוראת קבע</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Assembly -->
+      <div class="card">
+        <h2><span class="n">5</span>פרטי הרכבה והתקנה</h2>
+        <p class="sub">מולא על ידי הסוכן לצוות ההרכבה — יופק כטופס הרכבה נפרד.</p>
+        <div class="row">
+          <div class="field"><label>איש קשר לחיבור מחשב</label><input id="itContact"></div>
+          <div class="field"><label>טלפון</label><input id="itPhone"></div>
+          <div class="field"><label>נייד</label><input id="itMobile"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>מספר עמדות מחשב</label><input id="stations" type="number" min="0"></div>
+          <div class="field"><label>מס' יעדי סריקה לכל מכונה</label><input id="scanDest" type="number" min="0"></div>
+        </div>
+        <div class="row">
+          <div class="field wide">
+            <label>חיבור לענן — סוג CONNECTOR (סריקה)</label>
+            <div class="opts" id="connectorOpts"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label>המכונה נדרשת לתאריך</label><input id="neededDate" type="date"></div>
+          <div class="field"><label>קומה</label><input id="floor"></div>
+          <div class="field"><label>מעלית</label><select id="elevator"><option value="">—</option><option>כן</option><option>לא</option></select></div>
+          <div class="field"><label>מדרגות</label><input id="stairs"></div>
+          <div class="field"><label>רוחב פתח דלת (ס"מ)</label><input id="doorWidth" type="number" min="0"></div>
+        </div>
+        <div class="row">
+          <div class="field wide"><label>מכונות להחזרה (טרייד אין)</label><input id="returnMachines"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>תוכנות מיוחדות</label><input id="specialSoftware"></div>
+          <div class="field"><label>שעות עבודה</label><input id="workHours" placeholder="לדוגמה: 08:00–17:00"></div>
+        </div>
+        <div class="row">
+          <div class="field wide"><label>בקשות מיוחדות</label><textarea id="specialRequests"></textarea></div>
+        </div>
+      </div>
+
+      <!-- 6. Customer signature -->
+      <div class="card">
+        <h2><span class="n">6</span>חתימת הלקוח</h2>
+        <p class="sub">תנו ללקוח לחתום כאן על מסך הטלפון — החתימה תודפס אוטומטית על טופס ההזמנה.</p>
+        <div class="sigWrap">
+          <canvas id="sigCanvas"></canvas>
+          <div class="sigHint" id="sigHint">חתמו כאן באצבע</div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn secondary" id="sigClear" type="button" style="width:auto;padding:8px 18px">נקה חתימה</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary column -->
+    <div class="summary">
+      <div class="card">
+        <h2><span class="n">✓</span>סיכום הזמנה</h2>
+        <div class="sumRow"><span>מס' פריטים</span><span id="sumCount">0</span></div>
+        <div class="sumRow total"><span>סה"כ להזמנה</span><span id="sumTotal">₪0</span></div>
+      </div>
+      <div class="card actions">
+        <div id="validationBanner" class="validationBanner" hidden></div>
+        <div id="successBanner" class="successBanner" hidden></div>
+        <button class="btn" id="printOrder" type="button">📄 טופס הזמנה — הורדת PDF</button>
+        <button class="btn secondary" id="printAssembly" type="button">🛠️ טופס הרכבה — הורדת PDF</button>
+        <button class="btn secondary" id="printBoth" type="button">הורדת שני הקבצים</button>
+        <div class="legal">בלחיצה על כפתור יופק קובץ PDF מוכן ותתבקשו לאשר את השמירה.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PRINT: ORDER FORM ================= -->
+<div class="printSheet" id="printOrderSheet">
+  <div class="psHead">
+    <img src="logo.png" alt="גטר גרופ" class="psLogo">
+    <h2 style="margin:0">טופס הזמנה</h2>
+    <div style="font-size:10px;text-align:left">מס' הזמנה: <b id="po_orderNo"></b><br>מס' סוכן: <b id="po_agentNo"></b><br>תאריך: <b id="po_date"></b></div>
+  </div>
+
+  <div class="psSection">
+    <h3>פרטי לקוח</h3>
+    <div class="psCustGrid">
+      <div class="pscCol">
+        <div class="f"><b>שם לקוח:</b><span id="po_custName"></span></div>
+        <div class="f"><b>כתובת:</b><span id="po_custAddr"></span></div>
+        <div class="f"><b>כתובת לחשבונית/מייל:</b><span id="po_custBillAddr"></span></div>
+        <div class="f"><b>כתובת לאספקה:</b><span id="po_custShipAddr"></span></div>
+      </div>
+      <div class="pscCol">
+        <div class="f"><b>מספר לקוח:</b><span id="po_custNo"></span></div>
+        <div class="f"><b>טלפון:</b><span id="po_custPhone"></span></div>
+        <div class="f"><b>פקס:</b><span id="po_custFax"></span></div>
+        <div class="f"><b>איש קשר לאספקה:</b><span id="po_shipContact"></span></div>
+      </div>
+      <div class="pscCol">
+        <div class="f"><b>מס' הזמנת לקוח:</b><span id="po_custPO"></span></div>
+        <div class="f"><b>טלפון למונים:</b><span id="po_meterPhone"></span></div>
+        <div class="f"><b>טל' איש קשר:</b><span id="po_shipContactPhone"></span></div>
+        <div class="f"><b>נייד:</b><span id="po_custMobile"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="psSection">
+    <h3>פרטי העסקה</h3>
+    <div class="psGrid psGrid3 psGridTight">
+      <div class="f"><b>תיאור עסקה:</b><span id="po_dealDesc"></span></div>
+      <div class="f"><b>תקופה:</b><span id="po_dealPeriod"></span></div>
+      <div class="f"><b>סוג מכונה:</b><span id="po_dealMachineType"></span></div>
+      <div class="f"><b>מחיר פ"מ שחור:</b><span id="po_priceMono"></span></div>
+      <div class="f"><b>מחיר פ"ח צבע:</b><span id="po_priceColor"></span></div>
+      <div class="f"><b>מחיר פ"מ סריקה:</b><span id="po_priceScan"></span></div>
+      <div class="f"><b>מינימום צילומים שחור:</b><span id="po_minPrintsMono"></span></div>
+      <div class="f"><b>מינימום צילומים צבע:</b><span id="po_minPrintsColor"></span></div>
+      <div class="f"></div>
+      <div class="f"><b>הצמדה:</b><span id="po_linkage"></span></div>
+      <div class="f"><b>LFM:</b><span id="po_lfm"></span></div>
+      <div class="f"><b>טרייד אין:</b><span id="po_tradeIn"></span></div>
+      <div class="f" id="po_volRow" style="grid-column:1/4"><b>היקף עבודה (ש/ל · צבע):</b><span id="po_vol"></span></div>
+    </div>
+    <div class="psNote" id="po_notesLine"></div>
+  </div>
+
+  <div class="psSection">
+    <h3>פריטים שהוזמנו</h3>
+    <table class="psTable">
+      <thead><tr><th>דגם / אביזר</th><th>מק"ט</th><th>כמות</th><th>מחיר ליחידה</th><th>סה"כ</th></tr></thead>
+      <tbody id="po_itemsBody"></tbody>
+    </table>
+    <div class="psTotals">
+      <table>
+        <tr><td>סה"כ להזמנה</td><td id="po_total"></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="psSection">
+    <h3>תשלום</h3>
+    <div class="psGrid">
+      <div class="f"><b>תנאי תשלום:</b><span id="po_paymentTerms"></span></div>
+      <div class="f"><b>מקדמה:</b><span id="po_advance"></span></div>
+      <div class="f"><b>התקבל:</b><span id="po_received"></span></div>
+    </div>
+  </div>
+
+  <div class="psLegal">
+    חתימת המזמין על מסמך זה והסדרת התשלומים מהווים קבלת ההצעה ומעידים על הסכמתו של המזמין להתקשר עם גטר גרופ בע"מ בהסכם זה.
+    למרות האמור לעיל יכנס הסכם זה לתקפו רק לאחר שיאושר ויוחתם על ידי המשרד הראשי של חברת גטר גרופ בע"מ.
+    מחירי השירות אינם כוללים מע"מ. ולראייה באו הצדדים על החתום:
+  </div>
+  <div class="psSign">
+    <div class="s">תאריך, שם, חותמת וחתימת המזמין</div>
+    <div class="s">תאריך, שם, חותמת וחתימת נציג גטר גרופ בע"מ</div>
+  </div>
+
+  <div class="psOfficeUse">
+    <h3>לשימוש משרדי בלבד</h3>
+    <div class="officeLine"><span class="officeCode">30/100</span></div>
+    <div class="officeLine"></div>
+    <div class="officeLine officeLineExtra"></div>
+    <div class="officeLine officeLineExtra"></div>
+  </div>
+  <div class="psSign" style="margin-top:6mm">
+    <div class="s" style="flex:0 0 33%">תאריך, שם וחתימת מנהל גטר גרופ בע"מ חטיבת טק דיגיטל</div>
+  </div>
+</div>
+
+<!-- ================= PRINT: ASSEMBLY FORM ================= -->
+<div class="printSheet" id="printAssemblySheet">
+  <div class="psHead">
+    <div class="co">גטר גרופ בע"מ<small>הוראות הרכבה והתקנה ללקוח</small></div>
+    <h2 style="margin:0">טופס הרכבה</h2>
+    <div style="font-size:10px;text-align:left">הזמנת סוכן מס': <b id="pa_agentNo"></b><br>תאריך: <b id="pa_date"></b></div>
+  </div>
+
+  <div class="psSection">
+    <h3>פרטי לקוח ואספקה</h3>
+    <div class="psGrid">
+      <div class="f"><b>שם סוכן:</b><span id="pa_agentNo2"></span></div>
+      <div class="f"><b>שם לקוח:</b><span id="pa_custName"></span></div>
+      <div class="f"><b>מספר לקוח:</b><span id="pa_custNo"></span></div>
+      <div class="f"><b>כתובת לאספקה:</b><span id="pa_custShipAddr"></span></div>
+      <div class="f"><b>טלפון:</b><span id="pa_custPhone"></span></div>
+      <div class="f"><b>פקס:</b><span id="pa_custFax"></span></div>
+      <div class="f"><b>איש קשר לאספקה:</b><span id="pa_shipContact"></span></div>
+      <div class="f"><b>טלפון / נייד:</b><span id="pa_shipContactPhone"></span></div>
+      <div class="f"><b>איש קשר לחיבור מחשב:</b><span id="pa_itContact"></span></div>
+      <div class="f"><b>טלפון / נייד:</b><span id="pa_itPhone"></span></div>
+      <div class="f"><b>מספר עמדות מחשב:</b><span id="pa_stations"></span></div>
+      <div class="f"><b>יעדי סריקה לכל מכונה:</b><span id="pa_scanDest"></span></div>
+    </div>
+    <div style="margin-top:2mm"><b>חיבור לענן — סוג CONNECTOR:</b>
+      <div class="chipRow" id="pa_connectors" style="margin-top:1mm"></div>
+    </div>
+  </div>
+
+  <div class="psSection">
+    <h3>מכונות ואביזרים להרכבה</h3>
+    <table class="psTable">
+      <thead><tr><th>דגם</th><th>אביזרים</th><th>מק"ט</th><th>משקל כולל (ק"ג)</th><th>רוחב מינ' (ס"מ)</th><th>כמות</th></tr></thead>
+      <tbody id="pa_itemsBody"></tbody>
+    </table>
+    <div class="psNote" id="pa_returnMachines"></div>
+  </div>
+
+  <div class="psSection">
+    <h3>דרישות אספקה והתקנה</h3>
+    <div class="psGrid">
+      <div class="f"><b>המכונה נדרשת לתאריך:</b><span id="pa_neededDate"></span></div>
+      <div class="f"><b>קומה:</b><span id="pa_floor"></span></div>
+      <div class="f"><b>מעלית:</b><span id="pa_elevator"></span></div>
+      <div class="f"><b>מדרגות:</b><span id="pa_stairs"></span></div>
+      <div class="f"><b>רוחב פתח דלת:</b><span id="pa_doorWidth"></span></div>
+      <div class="f"><b>LFM:</b><span id="pa_lfm"></span></div>
+      <div class="f"><b>תוכנות מיוחדות:</b><span id="pa_specialSoftware"></span></div>
+      <div class="f"><b>שעות עבודה:</b><span id="pa_workHours"></span></div>
+    </div>
+  </div>
+
+  <div class="psSection">
+    <h3>בקשות מיוחדות</h3>
+    <p id="pa_specialRequests" style="min-height:12mm;border:1px solid #ccc;border-radius:4px;padding:2mm"></p>
+  </div>
+
+  <div class="psSign">
+    <div class="s">תאריך, שם וחתימת הטכנאי המרכיב</div>
+    <div class="s">תאריך, שם וחתימת הלקוח לאישור קבלה</div>
+  </div>
+</div>
+
+<script src="jspdf.umd.min.js"></script>
+<script src="data.js"></script>
+<script src="fonts.js"></script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(err){
+      console.warn('service worker registration failed', err);
+    });
+  });
+}
+</script>
+<script>
+(function(){
+"use strict";
+
+document.getElementById('dateNow').textContent = new Date().toLocaleDateString('he-IL');
+var today = new Date().toISOString().slice(0,10);
+document.getElementById('orderDate').value = today;
+
+var CONNECTORS = ["Connector for Dropbox","Connector for GoogleDrive","Connector for GMAIL","Connector for SharePoint","Connector for OneDrive","Connector OneDrive Business","Connector for Box"];
+var connWrap = document.getElementById('connectorOpts');
+CONNECTORS.forEach(function(c,i){
+  var lbl = document.createElement('label');
+  lbl.className='opt';
+  lbl.innerHTML = '<input type="checkbox" data-conn="'+c+'" id="conn'+i+'"> '+c;
+  connWrap.appendChild(lbl);
+});
+
+var MODELS = Object.keys(CATALOG).sort(function(a,b){return a.localeCompare(b,'he')});
+var byManuf = {};
+MODELS.forEach(function(m){
+  var manuf = CATALOG[m].manuf || 'אחר';
+  (byManuf[manuf] = byManuf[manuf]||[]).push(m);
+});
+
+var lines = [];
+var lineSeq = 0;
+
+function fmt(n){
+  n = Number(n)||0;
+  return '₪' + n.toLocaleString('he-IL',{maximumFractionDigits:2});
+}
+
+function makeModelSelect(id){
+  var sel = document.createElement('select');
+  sel.id = id;
+  var optEmpty = document.createElement('option');
+  optEmpty.value=''; optEmpty.textContent='— בחר דגם —';
+  sel.appendChild(optEmpty);
+  Object.keys(byManuf).sort().forEach(function(manuf){
+    var og = document.createElement('optgroup');
+    og.label = manuf;
+    byManuf[manuf].forEach(function(m){
+      var o = document.createElement('option');
+      o.value = m; o.textContent = m + ' — ' + CATALOG[m].type;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  return sel;
+}
+
+function renderManualSection(line, host){
+  var wrap = document.createElement('div');
+  wrap.className = 'accgroup';
+  var title = document.createElement('div');
+  title.className = 'gt';
+  title.textContent = 'הוספת אביזר ידנית';
+  wrap.appendChild(title);
+
+  var chipHost = document.createElement('div');
+  chipHost.className = 'opts';
+  function renderChips(){
+    chipHost.innerHTML = '';
+    line.manualAccessories.forEach(function(a, idx){
+      var chip = document.createElement('span');
+      chip.className = 'opt';
+      chip.textContent = a.name + (a.mekt ? (' (' + a.mekt + ')') : '') + ' ';
+      var rm = document.createElement('button');
+      rm.type = 'button'; rm.textContent = '✕';
+      rm.style.cssText = 'border:none;background:none;color:var(--muted);cursor:pointer;padding:0 2px';
+      rm.addEventListener('click', function(){
+        line.manualAccessories.splice(idx,1);
+        renderChips();
+        updateSummary();
+      });
+      chip.appendChild(rm);
+      chipHost.appendChild(chip);
+    });
+  }
+  renderChips();
+  wrap.appendChild(chipHost);
+
+  var addRow = document.createElement('div');
+  addRow.style.cssText = 'display:flex;gap:6px;margin-top:6px;flex-wrap:wrap';
+  var nameInput = document.createElement('input');
+  nameInput.placeholder = 'שם האביזר'; nameInput.style.flex = '1 1 140px';
+  var mektInput = document.createElement('input');
+  mektInput.placeholder = 'מק"ט (אופציונלי)'; mektInput.style.flex = '0 1 120px';
+  var addBtn = document.createElement('button');
+  addBtn.type = 'button'; addBtn.textContent = '+ הוסף';
+  addBtn.style.cssText = 'border:1px solid var(--border);border-radius:8px;padding:5px 10px;background:var(--surface);color:var(--accent);cursor:pointer;font-size:12.5px;font-weight:600';
+  addBtn.addEventListener('click', function(){
+    if(!nameInput.value.trim()) return;
+    line.manualAccessories.push({name: nameInput.value.trim(), mekt: mektInput.value.trim(), weight:'', width:''});
+    nameInput.value=''; mektInput.value='';
+    renderChips();
+    updateSummary();
+  });
+  addRow.appendChild(nameInput);
+  addRow.appendChild(mektInput);
+  addRow.appendChild(addBtn);
+  wrap.appendChild(addRow);
+
+  host.appendChild(wrap);
+}
+
+function renderAccessories(line){
+  var host = line.el.querySelector('.accHost');
+  host.innerHTML = '';
+  var info = CATALOG[line.model];
+  if(!info){ return; }
+  var groups = [
+    {key:'feeder', label:'פידר', mandatory: info.mandatory_feeder},
+    {key:'fax', label:'כרטיס פקס (אופציונלי)', mandatory:false},
+    {key:'cabinet', label:'ארונית', mandatory: info.mandatory_cabinet},
+    {key:'finisher', label:'יחידת גימור / מגש יציאה', mandatory: info.mandatory_finisher},
+    {key:'other', label:'אביזרים נוספים (אופציונלי)', mandatory:false}
+  ];
+  groups.forEach(function(g){
+    var items = info.buckets[g.key] || [];
+    if(!items.length) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'accgroup';
+    var title = document.createElement('div');
+    title.className = 'gt' + (g.mandatory ? ' req' : '');
+    title.textContent = g.label;
+    wrap.appendChild(title);
+    var opts = document.createElement('div');
+    opts.className = 'opts';
+    items.forEach(function(it, idx){
+      var lbl = document.createElement('label');
+      lbl.className = 'opt';
+      var input = document.createElement('input');
+      input.type = g.mandatory ? 'radio' : 'checkbox';
+      input.name = g.mandatory ? (line.id + '_' + g.key) : undefined;
+      input.value = it.name;
+      input.dataset.group = g.key;
+      input.addEventListener('change', updateSummary);
+      lbl.appendChild(input);
+      var txt = document.createElement('span');
+      txt.textContent = ' ' + it.name;
+      lbl.appendChild(txt);
+      if(it.mekt){
+        var sm = document.createElement('small');
+        sm.textContent = ' (' + it.mekt + ')';
+        lbl.appendChild(sm);
+      }
+      opts.appendChild(lbl);
+    });
+    wrap.appendChild(opts);
+    if(g.mandatory){
+      var hint = document.createElement('div');
+      hint.className='hint';
+      hint.textContent = 'יש לבחור אפשרות אחת — לפי דרישת הדגם';
+      wrap.appendChild(hint);
+    }
+    host.appendChild(wrap);
+  });
+  if(!info.has_group_data){
+    var note = document.createElement('div');
+    note.className = 'hint';
+    note.style.cssText = 'margin-bottom:6px';
+    note.textContent = 'לדגם זה אין רשימת אביזרים מובנית במערכת — יש להוסיף את האביזרים הנדרשים ידנית למטה.';
+    host.appendChild(note);
+  }
+  renderManualSection(line, host);
+}
+
+function addLine(){
+  lineSeq++;
+  var id = 'line' + lineSeq;
+  var el = document.createElement('div');
+  el.className = 'linecard';
+  el.innerHTML =
+    '<div class="lineHead"><b>פריט #' + (lines.length+1) + '</b>' +
+    '<button type="button" class="removeLine">הסר ✕</button></div>' +
+    '<div class="row">' +
+      '<div class="field wide modelHost"></div>' +
+      '<div class="field" style="flex:0 0 100px"><label>כמות</label><input type="number" min="1" value="1" class="qty"></div>' +
+      '<div class="field" style="flex:0 0 140px"><label>מחיר ליחידה (₪)</label><input type="number" min="0" step="0.01" class="price"></div>' +
+    '</div>' +
+    '<div class="accHost"></div>';
+
+  var line = {id:id, model:'', el:el, manualAccessories:[]};
+  var modelHost = el.querySelector('.modelHost');
+  var lbl = document.createElement('label');
+  lbl.textContent = 'דגם';
+  var sel = makeModelSelect(id + '_model');
+  modelHost.appendChild(lbl);
+  modelHost.appendChild(sel);
+
+  sel.addEventListener('change', function(){
+    line.model = sel.value;
+    line.manualAccessories = [];
+    renderAccessories(line);
+    updateSummary();
+  });
+  el.querySelector('.qty').addEventListener('input', updateSummary);
+  el.querySelector('.price').addEventListener('input', updateSummary);
+  el.querySelector('.removeLine').addEventListener('click', function(){
+    lines = lines.filter(function(l){return l!==line});
+    el.remove();
+    renumberLines();
+    updateSummary();
+  });
+
+  lines.push(line);
+  document.getElementById('lines').appendChild(el);
+}
+
+function renumberLines(){
+  lines.forEach(function(l,i){
+    l.el.querySelector('.lineHead b').textContent = 'פריט #' + (i+1);
+  });
+}
+
+function updateSummary(){
+  var subtotal = 0;
+  lines.forEach(function(l){
+    var qty = Number(l.el.querySelector('.qty').value)||0;
+    var price = Number(l.el.querySelector('.price').value)||0;
+    subtotal += qty*price;
+  });
+  document.getElementById('sumCount').textContent = lines.length;
+  document.getElementById('sumTotal').textContent = fmt(subtotal);
+}
+
+document.getElementById('addLine').addEventListener('click', addLine);
+addLine();
+updateSummary();
+
+// ---------- Customer signature pad ----------
+var sigCanvas = document.getElementById('sigCanvas');
+var sigCtx = sigCanvas.getContext('2d');
+var sigHint = document.getElementById('sigHint');
+var sigHasContent = false;
+var sigDrawing = false;
+var sigLastX = 0, sigLastY = 0;
+
+var sigLastRectW = 0, sigLastRectH = 0;
+function resizeSigCanvas(){
+  var rect = sigCanvas.getBoundingClientRect();
+  if(!rect.width || !rect.height){
+    // Not laid out yet (e.g. called before the page has painted) - keep
+    // retrying instead of silently giving up, so the pad always ends up
+    // correctly sized even if this first call was too early.
+    requestAnimationFrame(resizeSigCanvas);
+    return;
+  }
+  // Mobile browsers fire 'resize' very often for reasons that have nothing
+  // to do with this canvas (the address bar collapsing/expanding while
+  // scrolling, the keyboard opening for a different field). Re-initializing
+  // the backing store on every one of those wipes and reloads the drawing,
+  // and if two resizes land close together the reload can race and leave
+  // the pad blank. So skip the whole re-init when the on-screen size is
+  // basically unchanged.
+  if(Math.abs(rect.width - sigLastRectW) < 1 && Math.abs(rect.height - sigLastRectH) < 1) return;
+  sigLastRectW = rect.width; sigLastRectH = rect.height;
+  var dpr = window.devicePixelRatio || 1;
+  var prevUrl = sigHasContent ? sigCanvas.toDataURL('image/png') : null;
+  sigCanvas.width = Math.round(rect.width * dpr);
+  sigCanvas.height = Math.round(rect.height * dpr);
+  sigCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  sigCtx.lineWidth = 2.4;
+  sigCtx.lineCap = 'round';
+  sigCtx.lineJoin = 'round';
+  sigCtx.strokeStyle = '#141413';
+  sigCtx.fillStyle = '#ffffff';
+  sigCtx.fillRect(0, 0, rect.width, rect.height);
+  if(prevUrl){
+    var img = new Image();
+    img.onload = function(){ sigCtx.drawImage(img, 0, 0, rect.width, rect.height); };
+    img.src = prevUrl;
+  }
+}
+window.addEventListener('resize', resizeSigCanvas);
+window.addEventListener('orientationchange', function(){ setTimeout(resizeSigCanvas, 200); });
+setTimeout(resizeSigCanvas, 0);
+if(document.fonts && document.fonts.ready){ document.fonts.ready.then(function(){ setTimeout(resizeSigCanvas, 0); }); }
+
+function sigPointFromClientXY(clientX, clientY){
+  var rect = sigCanvas.getBoundingClientRect();
+  return {x: clientX - rect.left, y: clientY - rect.top};
+}
+function sigStartAt(x, y){
+  sigDrawing = true;
+  sigLastX = x; sigLastY = y;
+  sigHint.style.display = 'none';
+  // draw a dot for a simple tap, so a single touch still registers as a mark
+  sigCtx.beginPath();
+  sigCtx.arc(x, y, sigCtx.lineWidth/2, 0, Math.PI*2);
+  sigCtx.fillStyle = sigCtx.strokeStyle;
+  sigCtx.fill();
+  sigHasContent = true;
+}
+function sigMoveTo(x, y){
+  if(!sigDrawing) return;
+  sigCtx.beginPath();
+  sigCtx.moveTo(sigLastX, sigLastY);
+  sigCtx.lineTo(x, y);
+  sigCtx.stroke();
+  sigLastX = x; sigLastY = y;
+  sigHasContent = true;
+}
+function sigEndStroke(){ sigDrawing = false; }
+
+// Pointer Events cover mouse, touch and pen in one model and are what modern
+// Android Chrome (and desktop) fire for a touchscreen drag - use them when
+// available. Touch Events are kept as a fallback only for browsers that
+// don't support Pointer Events at all, so the two paths never both fire for
+// the same physical touch.
+if(window.PointerEvent){
+  sigCanvas.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    try{ sigCanvas.setPointerCapture(e.pointerId); }catch(err){}
+    var p = sigPointFromClientXY(e.clientX, e.clientY);
+    sigStartAt(p.x, p.y);
+  });
+  sigCanvas.addEventListener('pointermove', function(e){
+    if(!sigDrawing) return;
+    e.preventDefault();
+    var p = sigPointFromClientXY(e.clientX, e.clientY);
+    sigMoveTo(p.x, p.y);
+  });
+  sigCanvas.addEventListener('pointerup', sigEndStroke);
+  sigCanvas.addEventListener('pointercancel', sigEndStroke);
+  sigCanvas.addEventListener('pointerleave', sigEndStroke);
+} else {
+  sigCanvas.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    var t = e.touches[0];
+    var p = sigPointFromClientXY(t.clientX, t.clientY);
+    sigStartAt(p.x, p.y);
+  }, {passive:false});
+  sigCanvas.addEventListener('touchmove', function(e){
+    if(!sigDrawing) return;
+    e.preventDefault();
+    var t = e.touches[0];
+    var p = sigPointFromClientXY(t.clientX, t.clientY);
+    sigMoveTo(p.x, p.y);
+  }, {passive:false});
+  sigCanvas.addEventListener('touchend', sigEndStroke);
+  sigCanvas.addEventListener('touchcancel', sigEndStroke);
+  sigCanvas.addEventListener('mousedown', function(e){
+    var p = sigPointFromClientXY(e.clientX, e.clientY);
+    sigStartAt(p.x, p.y);
+  });
+  sigCanvas.addEventListener('mousemove', function(e){
+    var p = sigPointFromClientXY(e.clientX, e.clientY);
+    sigMoveTo(p.x, p.y);
+  });
+  window.addEventListener('mouseup', sigEndStroke);
+}
+
+document.getElementById('sigClear').addEventListener('click', function(){
+  var rect = sigCanvas.getBoundingClientRect();
+  sigCtx.fillStyle = '#ffffff';
+  sigCtx.fillRect(0, 0, rect.width, rect.height);
+  sigHasContent = false;
+  sigHint.style.display = 'flex';
+});
+
+function getSignatureImage(){
+  if(!sigHasContent) return null;
+  var ratio = sigCanvas.width / sigCanvas.height;
+  if(!ratio || !isFinite(ratio)) return null;
+  return {url: sigCanvas.toDataURL('image/png'), ratio: ratio};
+}
+
+var minPrintsMonthlyBox = document.getElementById('minPrintsMonthly');
+var minPrintsYearlyBox = document.getElementById('minPrintsYearly');
+minPrintsMonthlyBox.addEventListener('change', function(){
+  if(this.checked) minPrintsYearlyBox.checked = false;
+});
+minPrintsYearlyBox.addEventListener('change', function(){
+  if(this.checked) minPrintsMonthlyBox.checked = false;
+});
+
+function val(id){ return document.getElementById(id).value || ''; }
+function checked(id){ return document.getElementById(id).checked; }
+function fmtDate(d){
+  if(!d) return '';
+  var p = d.split('-');
+  return p.length===3 ? (p[2]+'/'+p[1]+'/'+p[0]) : d;
+}
+
+function selectedAccessories(line){
+  var inputs = line.el.querySelectorAll('.accHost input');
+  var out = [];
+  inputs.forEach(function(inp){ if(inp.checked) out.push(inp.value); });
+  return out;
+}
+function selectedAccessoryRows(line){
+  var inputs = line.el.querySelectorAll('.accHost input');
+  var out = [];
+  var info = CATALOG[line.model];
+  inputs.forEach(function(inp){
+    if(!inp.checked) return;
+    var item = null;
+    if(info){
+      Object.keys(info.buckets).forEach(function(k){
+        info.buckets[k].forEach(function(it){ if(it.name===inp.value) item = it; });
+      });
+    }
+    out.push(item || {name:inp.value, mekt:'', weight:'', width:''});
+  });
+  (line.manualAccessories||[]).forEach(function(a){ out.push(a); });
+  return out;
+}
+
+function fillOrderPrint(){
+  document.getElementById('po_orderNo').textContent = val('orderNo');
+  document.getElementById('po_agentNo').textContent = val('agentNo');
+  document.getElementById('po_date').textContent = fmtDate(val('orderDate'));
+  document.getElementById('po_custName').textContent = val('custName');
+  document.getElementById('po_custNo').textContent = val('custNo');
+  document.getElementById('po_custPO').textContent = val('custPO');
+  document.getElementById('po_custPhone').textContent = val('custPhone');
+  document.getElementById('po_custAddr').textContent = val('custAddr');
+  document.getElementById('po_custFax').textContent = val('custFax');
+  document.getElementById('po_custShipAddr').textContent = val('custShipAddr');
+  document.getElementById('po_custMobile').textContent = val('custMobile');
+  document.getElementById('po_custBillAddr').textContent = val('custBillAddr');
+  document.getElementById('po_meterPhone').textContent = val('meterPhone');
+  document.getElementById('po_shipContact').textContent = val('shipContact');
+  document.getElementById('po_shipContactPhone').textContent = val('shipContactPhone');
+
+  document.getElementById('po_dealDesc').textContent = val('dealDesc');
+  document.getElementById('po_dealMachineType').textContent = val('dealMachineType');
+  document.getElementById('po_dealPeriod').textContent = val('dealPeriod') ? (val('dealPeriod')+' חודשים') : '';
+  var minPrintsUnit = checked('minPrintsYearly') ? 'שנתי' : 'חודשי';
+  document.getElementById('po_minPrintsMono').textContent = val('minPrintsMono') ? (val('minPrintsMono') + ' (' + minPrintsUnit + ')') : '';
+  document.getElementById('po_minPrintsColor').textContent = val('minPrintsColor') ? (val('minPrintsColor') + ' (' + minPrintsUnit + ')') : '';
+  document.getElementById('po_priceMono').textContent = val('priceMono') ? (val('priceMono') + ' ש"ח') : '';
+  document.getElementById('po_priceColor').textContent = val('priceColor') ? (val('priceColor') + ' ש"ח') : '';
+  document.getElementById('po_priceScan').textContent = val('priceScan') ? (val('priceScan') + ' ש"ח') : '';
+  document.getElementById('po_linkage').textContent = val('linkage');
+  document.getElementById('po_lfm').textContent = checked('lfm') ? 'כן' : 'לא';
+  var tradeIn = val('tradeInModel') ? (val('tradeInModel') + (val('tradeInCredit') ? (' · זיכוי ' + fmt(val('tradeInCredit'))) : '')) : 'ללא';
+  document.getElementById('po_tradeIn').textContent = tradeIn;
+  var hasVol = val('volMono') || val('volColor');
+  document.getElementById('po_volRow').style.display = hasVol ? '' : 'none';
+  if(hasVol) document.getElementById('po_vol').textContent = (val('volMono')||'0') + ' / ' + (val('volColor')||'0');
+  document.getElementById('po_notesLine').textContent = val('dealNotes') ? ('הערות: ' + val('dealNotes')) : '';
+  document.getElementById('po_paymentTerms').textContent = val('paymentTerms') || '—';
+  document.getElementById('po_advance').textContent = val('advance') ? fmt(val('advance')) : '—';
+  var received = [];
+  if(checked('receivedChecks')) received.push("צ'קים");
+  if(checked('receivedStandingOrder')) received.push('הוראת קבע');
+  document.getElementById('po_received').textContent = received.length ? received.join(', ') : '—';
+
+  var body = document.getElementById('po_itemsBody');
+  body.innerHTML = '';
+  var subtotal = 0;
+  lines.forEach(function(l){
+    if(!l.model) return;
+    var info = CATALOG[l.model];
+    var qty = Number(l.el.querySelector('.qty').value)||0;
+    var price = Number(l.el.querySelector('.price').value)||0;
+    var total = qty*price;
+    subtotal += total;
+    var mainRow = document.createElement('tr');
+    mainRow.innerHTML = '<td><b>'+l.model+'</b> — '+(info.type||'')+'</td><td>'+(info.mekt||'')+'</td><td>'+qty+'</td><td>'+fmt(price)+'</td><td>'+fmt(total)+'</td>';
+    body.appendChild(mainRow);
+    selectedAccessoryRows(l).forEach(function(a){
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td style="padding-right:6mm">'+a.name+'</td><td>'+(a.mekt||'')+'</td><td>1</td><td>—</td><td>—</td>';
+      body.appendChild(tr);
+    });
+  });
+  document.getElementById('po_total').textContent = fmt(subtotal);
+
+  adjustOfficeLines();
+}
+
+function adjustOfficeLines(){
+  // Show all 4 office-use lines by default, then drop the extra 2 only if the
+  // order sheet would otherwise spill onto a second PDF page.
+  var sheet = document.getElementById('printOrderSheet');
+  var extras = sheet.querySelectorAll('.officeLineExtra');
+  extras.forEach(function(el){ el.style.display = ''; });
+  var rect = sheet.getBoundingClientRect();
+  if(rect.width > 0){
+    var mmPerPx = 190 / rect.width;
+    var heightMm = rect.height * mmPerPx;
+    if(heightMm > 296){
+      extras.forEach(function(el){ el.style.display = 'none'; });
+    }
+  }
+}
+
+function fillAssemblyPrint(){
+  document.getElementById('pa_agentNo').textContent = val('orderNo');
+  document.getElementById('pa_agentNo2').textContent = val('agentNo');
+  document.getElementById('pa_date').textContent = fmtDate(val('orderDate'));
+  document.getElementById('pa_custName').textContent = val('custName');
+  document.getElementById('pa_custNo').textContent = val('custNo');
+  document.getElementById('pa_custShipAddr').textContent = val('custShipAddr');
+  document.getElementById('pa_custPhone').textContent = val('custPhone');
+  document.getElementById('pa_custFax').textContent = val('custFax');
+  document.getElementById('pa_shipContact').textContent = val('shipContact');
+  document.getElementById('pa_shipContactPhone').textContent = val('shipContactPhone');
+  document.getElementById('pa_itContact').textContent = val('itContact');
+  document.getElementById('pa_itPhone').textContent = [val('itPhone'),val('itMobile')].filter(Boolean).join(' / ');
+  document.getElementById('pa_stations').textContent = val('stations');
+  document.getElementById('pa_scanDest').textContent = val('scanDest');
+
+  var connHost = document.getElementById('pa_connectors');
+  connHost.innerHTML = '';
+  CONNECTORS.forEach(function(c,i){
+    var on = document.getElementById('conn'+i).checked;
+    var chip = document.createElement('span');
+    chip.className = 'c' + (on ? ' on':'');
+    chip.textContent = c;
+    connHost.appendChild(chip);
+  });
+
+  var body = document.getElementById('pa_itemsBody');
+  body.innerHTML = '';
+  lines.forEach(function(l){
+    if(!l.model) return;
+    var info = CATALOG[l.model];
+    var qty = Number(l.el.querySelector('.qty').value)||1;
+    var mainRow = document.createElement('tr');
+    mainRow.innerHTML = '<td><b>'+l.model+'</b></td><td>—</td><td>'+(info.mekt||'')+'</td><td>'+(info.weight||'')+'</td><td>'+(info.width||'')+'</td><td>'+qty+'</td>';
+    body.appendChild(mainRow);
+    selectedAccessoryRows(l).forEach(function(a){
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td></td><td>'+a.name+'</td><td>'+(a.mekt||'')+'</td><td>'+(a.weight||'')+'</td><td>'+(a.width||'')+'</td><td>1</td>';
+      body.appendChild(tr);
+    });
+  });
+  document.getElementById('pa_returnMachines').textContent = val('returnMachines') ? ('מכונות להחזרה: ' + val('returnMachines')) : '';
+
+  document.getElementById('pa_neededDate').textContent = fmtDate(val('neededDate'));
+  document.getElementById('pa_floor').textContent = val('floor');
+  document.getElementById('pa_elevator').textContent = val('elevator');
+  document.getElementById('pa_stairs').textContent = val('stairs');
+  document.getElementById('pa_doorWidth').textContent = val('doorWidth') ? (val('doorWidth')+' ס"מ') : '';
+  document.getElementById('pa_lfm').textContent = checked('lfm') ? 'כן' : 'לא';
+  document.getElementById('pa_specialSoftware').textContent = val('specialSoftware');
+  document.getElementById('pa_workHours').textContent = val('workHours');
+  document.getElementById('pa_specialRequests').textContent = val('specialRequests');
+}
+
+var downloadsCap = null;
+if(window.claude && window.claude.use){
+  window.claude.use('downloads').then(function(d){ downloadsCap = d; }).catch(function(){});
+}
+
+/* ============================================================
+   TEXT-BASED PDF GENERATION
+   Native jsPDF text (selectable, tiny file size) instead of a
+   screenshot. jsPDF only ships Latin fonts, so a Hebrew+Latin
+   subset of Rubik is embedded (fonts.js).
+
+   RTL: jsPDF has no bidi engine — it just places glyphs left to
+   right in the order given. For a run of PURE Hebrew, reversing
+   the characters and drawing them left-to-right happens to look
+   right (a Hebrew reader's eye recovers the original order).
+   But jsPDF's embedded-font text path does its OWN extra reversal
+   pass whenever it detects Hebrew in the string, and that pass
+   reverses the ENTIRE string including any embedded digits — so
+   a mixed string like "מס' הזמנה: 12345" comes back with the
+   digits flipped ("54321"). The fix is to never hand jsPDF a
+   mixed-script string at all: split on Hebrew/non-Hebrew runs and
+   draw each run with its own doc.text() call, right-aligned and
+   cascading from the right edge — each individual call is then
+   pure-script and immune to the mixing bug.
+   ============================================================ */
+var PDF_MX = 10, PDF_PW = 210, PDF_PH = 297;
+var PDF_RIGHT = PDF_PW - PDF_MX, PDF_LEFT = PDF_MX, PDF_CW = PDF_RIGHT - PDF_LEFT;
+var HEBREW_RE = /[֐-׿]/;
+
+function ensurePdfFonts(doc){
+  doc.addFileToVFS('Rubik-Regular.ttf', RUBIK_REGULAR_B64);
+  doc.addFont('Rubik-Regular.ttf', 'Rubik', 'normal');
+  doc.addFileToVFS('Rubik-Bold.ttf', RUBIK_BOLD_B64);
+  doc.addFont('Rubik-Bold.ttf', 'Rubik', 'bold');
+  doc.setFont('Rubik','normal');
+  // jsPDF's R2L flips each drawn string into correct RTL visual order. With
+  // Hebrew present it already keeps pure-digit runs in normal reading order;
+  // only Latin-letter runs (and fully-Latin/digit strings with no Hebrew at
+  // all) need pre-compensation, which hebFix() below provides.
+  doc.setR2L(true);
+}
+
+// Pre-compensates a string for jsPDF's R2L reversal (see ensurePdfFonts):
+//  - No Hebrew anywhere: R2L will blindly reverse the whole string, so
+//    reverse it once ourselves first (reverse-of-reverse = original).
+//  - Mixed with Hebrew: R2L already places Hebrew runs and pure-digit runs
+//    correctly on its own; only runs containing a Latin letter (e.g. model
+//    codes like "A-77") come out reversed, so compensate just those.
+function hebFix(s){
+  s = (s===null||s===undefined) ? '' : String(s);
+  if(!s) return s;
+  if(!HEBREW_RE.test(s)) return s.split('').reverse().join('');
+  return s.replace(/[A-Za-z0-9]+(?:[\-.,\/:][A-Za-z0-9]+)*/g, function(run){
+    return /[A-Za-z]/.test(run) ? run.split('').reverse().join('') : run;
+  });
+}
+
+// Draws (possibly mixed Hebrew/Latin/digits) text so it reads correctly in an
+// RTL layout, with a single doc.text() call (multiple calls with different
+// script sets on the same custom font corrupts jsPDF's font subsetting).
+// x is the right edge for align:'right' (default), the left edge for
+// align:'left', or the center point for align:'center'. Returns the
+// rendered width (mm).
+function drawRTL(doc, text, x, y, opts){
+  opts = opts || {};
+  text = (text===null||text===undefined) ? '' : String(text);
+  doc.setFont('Rubik', opts.fontStyle||'normal');
+  doc.setFontSize(opts.fontSize||9);
+  var c = opts.color || [17,17,17];
+  doc.setTextColor(c[0],c[1],c[2]);
+  if(!text) return 0;
+  var t = hebFix(text);
+  doc.text(t, x, y, {align: opts.align||'right'});
+  return doc.getTextWidth(t);
+}
+
+function rtext(doc, s, x, y, fontStyle, fontSize, color){
+  drawRTL(doc, s, x, y, {fontStyle:fontStyle, fontSize:fontSize, color:color, align:'right'});
+}
+
+// Draws text that mixes a Hebrew phrase with more than one separate Latin/
+// digit chunk (e.g. "INEO 651i — מכונת צילום ש/ל A3": a model code, a dash,
+// and a Hebrew description that itself ends in a paper-size code). A single
+// drawRTL()/hebFix() call only compensates for ONE embedded Latin run inside
+// an otherwise-Hebrew sentence; jsPDF's R2L reverses the WHOLE string as one
+// unit, so with a Latin run at BOTH ends the compensation cancels out wrong
+// and the Hebrew words come out visually scrambled. Fix: split on whitespace
+// and draw each Hebrew or Latin/digit chunk as its own call, positioned
+// right-to-left by hand, so jsPDF's reversal only ever sees one script at a
+// time. x is the right edge to align the whole run to. Returns rendered width.
+function drawMixedRTL(doc, text, xRight, y, opts){
+  opts = opts || {};
+  text = (text===null||text===undefined) ? '' : String(text);
+  doc.setFont('Rubik', opts.fontStyle||'normal');
+  doc.setFontSize(opts.fontSize||9);
+  var c = opts.color || [17,17,17];
+  doc.setTextColor(c[0],c[1],c[2]);
+  if(!text) return 0;
+  var parts = text.split(/(\s+)/).filter(function(p){ return p.length; });
+  var cursor = xRight;
+  var spaceW = doc.getTextWidth(' ');
+  parts.forEach(function(p){
+    if(/^\s+$/.test(p)){ cursor -= spaceW * p.length; return; }
+    var isLatin = /^[A-Za-z0-9]+(?:[\-.,\/:+][A-Za-z0-9]+)*$/.test(p) && !HEBREW_RE.test(p);
+    var w;
+    if(isLatin){
+      doc.text(p, cursor, y, {align:'right', R2L:false});
+      w = doc.getTextWidth(p);
+    } else {
+      w = drawRTL(doc, p, cursor, y, {fontStyle:opts.fontStyle, fontSize:opts.fontSize, color:c, align:'right'});
+    }
+    cursor -= w;
+  });
+  return xRight - cursor;
+}
+
+function hrule(doc, x1, x2, y, gray){
+  gray = gray===undefined ? 200 : gray;
+  doc.setDrawColor(gray,gray,gray);
+  doc.setLineWidth(0.15);
+  doc.line(x1, y, x2, y);
+}
+
+// Places the captured customer signature image just above its signature line,
+// fitted into the column (colRight..colRight-colW) without distorting its
+// aspect ratio. No-op if the customer hasn't signed on screen.
+function drawSignatureImage(doc, sigData, colRight, colW, lineY){
+  if(!sigData) return;
+  var maxH = 10, maxW = colW - 4;
+  var w = maxW, h = w / sigData.ratio;
+  if(h > maxH){ h = maxH; w = h * sigData.ratio; }
+  var x = colRight - colW/2 - w/2;
+  var y = lineY - h - 1;
+  try{ doc.addImage(sigData.url, 'PNG', x, y, w, h); }catch(e){ console.error('signature image failed to embed', e); }
+}
+
+function pdfCheckBreak(doc, ctx, needed){
+  if(ctx.y + needed > PDF_PH - 12){
+    doc.addPage();
+    ctx.y = 15;
+    return true;
+  }
+  return false;
+}
+
+function sectionTitle(doc, ctx, title){
+  ctx.y += 5;
+  pdfCheckBreak(doc, ctx, 6);
+  doc.setDrawColor(200,0,95); doc.setLineWidth(0.9);
+  doc.line(PDF_RIGHT, ctx.y-3.3, PDF_RIGHT, ctx.y+1.3);
+  rtext(doc, title, PDF_RIGHT-2, ctx.y, 'bold', 11.5, [17,17,17]);
+  ctx.y += 4.2;
+}
+
+function wrapWords(doc, text, maxWidth, fontStyle, fontSize){
+  text = (text===null||text===undefined) ? '' : String(text).trim();
+  doc.setFont('Rubik', fontStyle||'normal');
+  doc.setFontSize(fontSize||9);
+  if(!text) return [''];
+  var words = text.split(/\s+/);
+  var lines = [], cur = '';
+  words.forEach(function(w){
+    var test = cur ? cur + ' ' + w : w;
+    if(cur && doc.getTextWidth(test) > maxWidth){
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = test;
+    }
+  });
+  if(cur) lines.push(cur);
+  return lines;
+}
+
+function drawField(doc, ctx, label, value, xRight, colW, opts){
+  opts = opts || {};
+  var fs = opts.fontSize || 8.3;
+  var lineH = opts.lineH || 3.7;
+  pdfCheckBreak(doc, ctx, lineH+1);
+  var labelStr = String(label) + ':';
+  var labelW = drawRTL(doc, labelStr, xRight, ctx.y, {fontStyle:'bold', fontSize:fs, color:[60,60,60], align:'right'});
+  var valueMaxW = Math.max(colW - labelW - 1.5, 8);
+  var valLines = wrapWords(doc, value||'', valueMaxW, 'normal', fs);
+  drawRTL(doc, valLines[0]||'', xRight - labelW - 1.5, ctx.y, {fontStyle:'normal', fontSize:fs, color:[17,17,17], align:'right'});
+  for(var i=1;i<valLines.length;i++){
+    ctx.y += lineH;
+    pdfCheckBreak(doc, ctx, lineH+1);
+    drawRTL(doc, valLines[i], xRight, ctx.y, {fontStyle:'normal', fontSize:fs, color:[17,17,17], align:'right'});
+  }
+  hrule(doc, xRight-colW, xRight, ctx.y+1.2);
+  ctx.y += lineH;
+}
+
+function drawFieldColumn(doc, fields, xRight, colW, startY, lineH){
+  var y = startY;
+  fields.forEach(function(f){
+    var ctx = {y:y};
+    drawField(doc, ctx, f.label, f.value, xRight, colW, {lineH:lineH});
+    y = ctx.y;
+  });
+  return y;
+}
+
+function drawFieldGrid(doc, ctx, rows, numCols, opts){
+  opts = opts || {};
+  var colW = PDF_CW/numCols;
+  var lineH = opts.lineH || 3.6;
+  rows.forEach(function(row){
+    var rowStartY = ctx.y;
+    var maxY = rowStartY;
+    row.forEach(function(f, i){
+      if(!f) return;
+      var xRight = PDF_RIGHT - i*colW;
+      var innerCtx = {y: rowStartY};
+      drawField(doc, innerCtx, f.label, f.value, xRight-1.5, colW-3, {lineH:lineH, fontSize:opts.fontSize});
+      if(innerCtx.y > maxY) maxY = innerCtx.y;
+    });
+    ctx.y = maxY;
+  });
+}
+
+function chunkFields(list, n){
+  var rows = [];
+  for(var i=0;i<list.length;i+=n){ rows.push(list.slice(i,i+n)); }
+  return rows;
+}
+
+function drawItemsTable(doc, ctx, columns, rows){
+  var xs = [];
+  var cx = PDF_RIGHT;
+  columns.forEach(function(c){ xs.push(cx); cx -= c.width; });
+  var headerH = 6.5, rowH = 5.4;
+  function drawHeader(){
+    doc.setFillColor(251,228,238);
+    doc.rect(PDF_LEFT, ctx.y, PDF_CW, headerH, 'F');
+    columns.forEach(function(c,i){ rtext(doc, c.label, xs[i]-1.5, ctx.y+4.3, 'bold', 8.3, [120,0,55]); });
+    doc.setDrawColor(200,200,200); doc.setLineWidth(0.15);
+    doc.rect(PDF_LEFT, ctx.y, PDF_CW, headerH);
+    xs.forEach(function(x){ doc.line(x, ctx.y, x, ctx.y+headerH); });
+    ctx.y += headerH;
+  }
+  pdfCheckBreak(doc, ctx, headerH+rowH);
+  drawHeader();
+  rows.forEach(function(r){
+    if(pdfCheckBreak(doc, ctx, rowH+headerH)){ drawHeader(); }
+    columns.forEach(function(c,i){
+      drawMixedRTL(doc, r[c.key]||'', xs[i]-1.5, ctx.y+3.7, {fontStyle:r.bold?'bold':'normal', fontSize:8.2, color:[17,17,17]});
+    });
+    doc.setDrawColor(220,220,220); doc.setLineWidth(0.1);
+    doc.line(PDF_LEFT, ctx.y+rowH, PDF_RIGHT, ctx.y+rowH);
+    ctx.y += rowH;
+  });
+}
+
+async function getLogoDataUrl(){
+  if(getLogoDataUrl._cache) return getLogoDataUrl._cache;
+  var img = document.querySelector('#printOrderSheet .psLogo');
+  if(!img) return null;
+  if(!img.complete || !img.naturalWidth){
+    await new Promise(function(res){ img.onload=res; img.onerror=res; setTimeout(res,1500); });
+  }
+  if(!img.naturalWidth) return null;
+  var canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+  canvas.getContext('2d').drawImage(img,0,0);
+  getLogoDataUrl._cache = {url: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height};
+  return getLogoDataUrl._cache;
+}
+
+function ensureJsPdfLoaded(){
+  if(!window.jspdf || !window.jspdf.jsPDF){
+    throw new Error('ספריית יצירת ה-PDF לא נטענה (jsPDF). בדקו חיבור לאינטרנט ונסו לרענן את הדף.');
+  }
+}
+
+async function buildOrderPdf(){
+  ensureJsPdfLoaded();
+  var doc = new window.jspdf.jsPDF({unit:'mm', format:'a4', compress:true});
+  ensurePdfFonts(doc);
+  var ctx = {y:26};
+
+  var logo = await getLogoDataUrl();
+  if(logo){
+    var lw = 26, lh = lw * (logo.h/logo.w);
+    doc.addImage(logo.url, 'PNG', PDF_RIGHT-lw, 9, lw, lh);
+  }
+  drawRTL(doc, 'טופס הזמנה', PDF_PW/2, 17, {fontStyle:'bold', fontSize:17, color:[17,17,17], align:'center'});
+  var infoRightX = PDF_LEFT + 62, infoY = 12;
+  rtext(doc, "מס' הזמנה: " + val('orderNo'), infoRightX, infoY, 'normal', 8.5); infoY += 3.6;
+  rtext(doc, "מס' סוכן: " + val('agentNo'), infoRightX, infoY, 'normal', 8.5); infoY += 3.6;
+  rtext(doc, 'תאריך: ' + fmtDate(val('orderDate')), infoRightX, infoY, 'normal', 8.5);
+  doc.setDrawColor(200,0,95); doc.setLineWidth(0.6); doc.line(PDF_LEFT, ctx.y, PDF_RIGHT, ctx.y);
+  ctx.y += 6;
+
+  sectionTitle(doc, ctx, 'פרטי לקוח');
+  var custStartY = ctx.y;
+  var yA = drawFieldColumn(doc, [
+    {label:'שם לקוח', value: val('custName')},
+    {label:'כתובת', value: val('custAddr')},
+    {label:'כתובת לחשבונית/מייל', value: val('custBillAddr')},
+    {label:'כתובת לאספקה', value: val('custShipAddr')}
+  ], PDF_RIGHT-1, 92, custStartY, 4.3);
+  var yB = drawFieldColumn(doc, [
+    {label:'מספר לקוח', value: val('custNo')},
+    {label:'טלפון', value: val('custPhone')},
+    {label:'פקס', value: val('custFax')},
+    {label:'איש קשר לאספקה', value: val('shipContact')}
+  ], PDF_RIGHT-95, 44, custStartY, 4.3);
+  var yC = drawFieldColumn(doc, [
+    {label:"מס' הזמנת לקוח", value: val('custPO')},
+    {label:'טלפון למונים', value: val('meterPhone')},
+    {label:"טל' איש קשר", value: val('shipContactPhone')},
+    {label:'נייד', value: val('custMobile')}
+  ], PDF_RIGHT-143, 44, custStartY, 4.3);
+  ctx.y = Math.max(yA, yB, yC) + 2;
+
+  sectionTitle(doc, ctx, 'פרטי העסקה');
+  var minUnit = checked('minPrintsYearly') ? 'שנתי' : 'חודשי';
+  drawFieldGrid(doc, ctx, [
+    [{label:'תיאור עסקה', value: val('dealDesc')}, {label:'תקופה', value: val('dealPeriod') ? (val('dealPeriod')+' חודשים') : ''}, {label:'סוג מכונה', value: val('dealMachineType')}],
+    [{label:'מחיר פ"מ שחור', value: val('priceMono') ? (val('priceMono')+' ש"ח') : ''}, {label:'מחיר פ"ח צבע', value: val('priceColor') ? (val('priceColor')+' ש"ח') : ''}, {label:'מחיר פ"מ סריקה', value: val('priceScan') ? (val('priceScan')+' ש"ח') : ''}],
+    [{label:'מינימום צילומים שחור', value: val('minPrintsMono') ? (val('minPrintsMono')+' ('+minUnit+')') : ''}, {label:'מינימום צילומים צבע', value: val('minPrintsColor') ? (val('minPrintsColor')+' ('+minUnit+')') : ''}, null],
+    [{label:'הצמדה', value: val('linkage')}, {label:'LFM', value: checked('lfm') ? 'כן' : 'לא'}, {label:'טרייד אין', value: val('tradeInModel') ? (val('tradeInModel') + (val('tradeInCredit') ? (' · זיכוי '+fmt(val('tradeInCredit'))) : '')) : 'ללא'}]
+  ], 3, {lineH:3.6, fontSize:8.3});
+  var hasVol = val('volMono') || val('volColor');
+  if(hasVol){
+    var volCtx = {y: ctx.y};
+    drawField(doc, volCtx, 'היקף עבודה (ש/ל · צבע)', (val('volMono')||'0') + ' / ' + (val('volColor')||'0'), PDF_RIGHT, PDF_CW, {lineH:3.8, fontSize:8.3});
+    ctx.y = volCtx.y;
+  }
+  if(val('dealNotes')){
+    ctx.y += 1;
+    wrapWords(doc, 'הערות: ' + val('dealNotes'), PDF_CW, 'normal', 8).forEach(function(l){
+      pdfCheckBreak(doc, ctx, 3.8);
+      drawRTL(doc, l, PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:8, color:[80,80,80], align:'right'});
+      ctx.y += 3.8;
+    });
+  }
+  ctx.y += 3;
+
+  sectionTitle(doc, ctx, 'פריטים שהוזמנו');
+  var rows = [], subtotal = 0;
+  lines.forEach(function(l){
+    if(!l.model) return;
+    var info = CATALOG[l.model];
+    var qty = Number(l.el.querySelector('.qty').value)||0;
+    var price = Number(l.el.querySelector('.price').value)||0;
+    var total = qty*price;
+    subtotal += total;
+    rows.push({name: l.model + ' — ' + (info.type||''), mekt: info.mekt||'', qty: String(qty), price: fmt(price), total: fmt(total), bold:true});
+    selectedAccessoryRows(l).forEach(function(a){
+      rows.push({name: '   ' + a.name, mekt: a.mekt||'', qty:'1', price:'—', total:'—', bold:false});
+    });
+  });
+  drawItemsTable(doc, ctx, [
+    {label:'דגם / אביזר', width:66, key:'name'},
+    {label:'מק"ט', width:30, key:'mekt'},
+    {label:'כמות', width:24, key:'qty'},
+    {label:'מחיר ליחידה', width:34, key:'price'},
+    {label:'סה"כ', width:36, key:'total'}
+  ], rows);
+  ctx.y += 2;
+  pdfCheckBreak(doc, ctx, 8);
+  drawRTL(doc, 'סה"כ להזמנה: ' + fmt(subtotal), PDF_RIGHT, ctx.y+4, {fontStyle:'bold', fontSize:10.5, color:[17,17,17], align:'right'});
+  ctx.y += 9;
+
+  sectionTitle(doc, ctx, 'תשלום');
+  var received = [];
+  if(checked('receivedChecks')) received.push("צ'קים");
+  if(checked('receivedStandingOrder')) received.push('הוראת קבע');
+  drawFieldGrid(doc, ctx, [
+    [{label:'תנאי תשלום', value: val('paymentTerms')||'—'}, {label:'מקדמה', value: val('advance')?fmt(val('advance')):'—'}],
+    [{label:'התקבל', value: received.length?received.join(', '):'—'}, null]
+  ], 2, {lineH:3.8, fontSize:8.6});
+  ctx.y += 4;
+
+  var legalText = 'חתימת המזמין על מסמך זה והסדרת התשלומים מהווים קבלת ההצעה ומעידים על הסכמתו של המזמין להתקשר עם גטר גרופ בע"מ בהסכם זה. למרות האמור לעיל יכנס הסכם זה לתקפו רק לאחר שיאושר ויוחתם על ידי המשרד הראשי של חברת גטר גרופ בע"מ. מחירי השירות אינם כוללים מע"מ. ולראייה באו הצדדים על החתום:';
+  wrapWords(doc, legalText, PDF_CW, 'normal', 7.6).forEach(function(l){
+    pdfCheckBreak(doc, ctx, 3.3);
+    drawRTL(doc, l, PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:7.6, color:[70,70,70], align:'right'});
+    ctx.y += 3.3;
+  });
+  ctx.y += 4;
+
+  pdfCheckBreak(doc, ctx, 22);
+  var sigColW = (PDF_CW - 10)/2, sig1R = PDF_RIGHT, sig2R = PDF_RIGHT - sigColW - 10;
+  var sigLineY = ctx.y + 12;
+  hrule(doc, sig1R-sigColW, sig1R, sigLineY, 20);
+  hrule(doc, sig2R-sigColW, sig2R, sigLineY, 20);
+  drawSignatureImage(doc, getSignatureImage(), sig1R, sigColW, sigLineY);
+  drawRTL(doc, 'תאריך, שם, חותמת וחתימת המזמין', sig1R - sigColW/2, sigLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
+  drawRTL(doc, 'תאריך, שם, חותמת וחתימת נציג גטר גרופ בע"מ', sig2R - sigColW/2, sigLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
+  ctx.y = sigLineY + 8;
+
+  pdfCheckBreak(doc, ctx, 12);
+  drawRTL(doc, 'לשימוש משרדי בלבד', PDF_RIGHT, ctx.y, {fontStyle:'bold', fontSize:9.5, color:[17,17,17], align:'right'});
+  ctx.y += 4;
+  var officeLineH = 6, baseLines = 2, extraLines = 2;
+  var remaining = (PDF_PH - 14) - ctx.y;
+  var totalLines = (remaining >= baseLines*officeLineH + extraLines*officeLineH + 14) ? (baseLines+extraLines) : baseLines;
+  for(var oi=0; oi<totalLines; oi++){
+    hrule(doc, PDF_LEFT, PDF_RIGHT, ctx.y, 190);
+    if(oi===0){
+      drawRTL(doc, '30/100', PDF_LEFT, ctx.y-1.2, {fontStyle:'normal', fontSize:7, color:[120,120,120], align:'left'});
+    }
+    ctx.y += officeLineH;
+  }
+  ctx.y += 6;
+
+  pdfCheckBreak(doc, ctx, 12);
+  var dmColW = PDF_CW/3, dmLineY = ctx.y + 10;
+  hrule(doc, PDF_RIGHT-dmColW, PDF_RIGHT, dmLineY, 20);
+  drawRTL(doc, 'תאריך, שם וחתימת מנהל גטר גרופ בע"מ חטיבת טק דיגיטל', PDF_RIGHT - dmColW/2, dmLineY+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
+
+  return doc;
+}
+
+async function buildAssemblyPdf(){
+  ensureJsPdfLoaded();
+  var doc = new window.jspdf.jsPDF({unit:'mm', format:'a4', compress:true});
+  ensurePdfFonts(doc);
+  var ctx = {y:24};
+
+  drawRTL(doc, 'גטר גרופ בע"מ', PDF_RIGHT, 11, {fontStyle:'bold', fontSize:11, color:[17,17,17], align:'right'});
+  drawRTL(doc, 'הוראות הרכבה והתקנה ללקוח', PDF_RIGHT, 15.5, {fontStyle:'normal', fontSize:8, color:[17,17,17], align:'right'});
+  drawRTL(doc, 'טופס הרכבה', PDF_PW/2, 15, {fontStyle:'bold', fontSize:17, color:[17,17,17], align:'center'});
+  var infoRightX = PDF_LEFT + 62;
+  rtext(doc, "הזמנת סוכן מס': " + val('orderNo'), infoRightX, 12, 'normal', 8.5);
+  rtext(doc, 'תאריך: ' + fmtDate(val('orderDate')), infoRightX, 16, 'normal', 8.5);
+  doc.setDrawColor(200,0,95); doc.setLineWidth(0.6); doc.line(PDF_LEFT, ctx.y, PDF_RIGHT, ctx.y);
+  ctx.y += 6;
+
+  sectionTitle(doc, ctx, 'פרטי לקוח ואספקה');
+  var custRows = chunkFields([
+    {label:'שם סוכן', value: val('agentNo')},
+    {label:'שם לקוח', value: val('custName')},
+    {label:'מספר לקוח', value: val('custNo')},
+    {label:'כתובת לאספקה', value: val('custShipAddr')},
+    {label:'טלפון', value: val('custPhone')},
+    {label:'פקס', value: val('custFax')},
+    {label:'איש קשר לאספקה', value: val('shipContact')},
+    {label:'טלפון / נייד', value: val('shipContactPhone')},
+    {label:'איש קשר לחיבור מחשב', value: val('itContact')},
+    {label:'טלפון / נייד', value: [val('itPhone'),val('itMobile')].filter(Boolean).join(' / ')},
+    {label:'מספר עמדות מחשב', value: val('stations')},
+    {label:'יעדי סריקה לכל מכונה', value: val('scanDest')}
+  ], 2);
+  drawFieldGrid(doc, ctx, custRows, 2, {lineH:3.8, fontSize:8.3});
+  ctx.y += 2;
+
+  pdfCheckBreak(doc, ctx, 8);
+  drawRTL(doc, 'חיבור לענן — סוג CONNECTOR:', PDF_RIGHT, ctx.y, {fontStyle:'bold', fontSize:8.6, color:[60,60,60], align:'right'});
+  ctx.y += 4.2;
+  var connLines = CONNECTORS.map(function(c,i){
+    var on = document.getElementById('conn'+i).checked;
+    return (on?'[X] ':'[ ] ') + c;
+  });
+  for(var ci=0; ci<connLines.length; ci+=2){
+    pdfCheckBreak(doc, ctx, 4);
+    drawRTL(doc, connLines.slice(ci, ci+2).join('     '), PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:7.8, color:[17,17,17], align:'right'});
+    ctx.y += 4;
+  }
+  ctx.y += 3;
+
+  sectionTitle(doc, ctx, 'מכונות ואביזרים להרכבה');
+  var arows = [];
+  lines.forEach(function(l){
+    if(!l.model) return;
+    var info = CATALOG[l.model];
+    var qty = Number(l.el.querySelector('.qty').value)||1;
+    arows.push({model:l.model, acc:'', mekt:info.mekt||'', weight:info.weight||'', width:info.width||'', qty:String(qty), bold:true});
+    selectedAccessoryRows(l).forEach(function(a){
+      arows.push({model:'', acc:a.name, mekt:a.mekt||'', weight:a.weight||'', width:a.width||'', qty:'1', bold:false});
+    });
+  });
+  drawItemsTable(doc, ctx, [
+    {label:'דגם', width:34, key:'model'},
+    {label:'אביזרים', width:56, key:'acc'},
+    {label:'מק"ט', width:28, key:'mekt'},
+    {label:'משקל כולל (ק"ג)', width:26, key:'weight'},
+    {label:"רוחב מינ' (ס\"מ)", width:26, key:'width'},
+    {label:'כמות', width:20, key:'qty'}
+  ], arows);
+  ctx.y += 2;
+  if(val('returnMachines')){
+    wrapWords(doc, 'מכונות להחזרה: ' + val('returnMachines'), PDF_CW, 'normal', 8).forEach(function(l){
+      pdfCheckBreak(doc, ctx, 3.8);
+      drawRTL(doc, l, PDF_RIGHT, ctx.y, {fontStyle:'normal', fontSize:8, color:[80,80,80], align:'right'});
+      ctx.y += 3.8;
+    });
+  }
+  ctx.y += 3;
+
+  sectionTitle(doc, ctx, 'דרישות אספקה והתקנה');
+  drawFieldGrid(doc, ctx, chunkFields([
+    {label:'המכונה נדרשת לתאריך', value: fmtDate(val('neededDate'))},
+    {label:'קומה', value: val('floor')},
+    {label:'מעלית', value: val('elevator')},
+    {label:'מדרגות', value: val('stairs')},
+    {label:'רוחב פתח דלת', value: val('doorWidth')?(val('doorWidth')+' ס"מ'):''},
+    {label:'LFM', value: checked('lfm')?'כן':'לא'},
+    {label:'תוכנות מיוחדות', value: val('specialSoftware')},
+    {label:'שעות עבודה', value: val('workHours')}
+  ], 2), 2, {lineH:3.8, fontSize:8.3});
+  ctx.y += 3;
+
+  sectionTitle(doc, ctx, 'בקשות מיוחדות');
+  pdfCheckBreak(doc, ctx, 16);
+  var boxTop = ctx.y;
+  var reqLines = wrapWords(doc, val('specialRequests')||'', PDF_CW-4, 'normal', 8.6);
+  var boxH = Math.max(12, reqLines.length*3.8+4);
+  doc.setDrawColor(200,200,200); doc.setLineWidth(0.15);
+  doc.roundedRect(PDF_LEFT, boxTop, PDF_CW, boxH, 1.2, 1.2);
+  var ry = boxTop+4.5;
+  reqLines.forEach(function(l){
+    drawRTL(doc, l, PDF_RIGHT-2, ry, {fontStyle:'normal', fontSize:8.6, color:[17,17,17], align:'right'});
+    ry += 3.8;
+  });
+  ctx.y = boxTop + boxH + 8;
+
+  pdfCheckBreak(doc, ctx, 22);
+  var sigColW2 = (PDF_CW - 10)/2, sig1R2 = PDF_RIGHT, sig2R2 = PDF_RIGHT - sigColW2 - 10;
+  var sigLineY2 = ctx.y + 10;
+  hrule(doc, sig1R2-sigColW2, sig1R2, sigLineY2, 20);
+  hrule(doc, sig2R2-sigColW2, sig2R2, sigLineY2, 20);
+  drawRTL(doc, 'תאריך, שם וחתימת הטכנאי המרכיב', sig1R2 - sigColW2/2, sigLineY2+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
+  drawRTL(doc, 'תאריך, שם וחתימת הלקוח לאישור קבלה', sig2R2 - sigColW2/2, sigLineY2+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
+
+  return doc;
+}
+
+async function savePdfBlob(blob, filename, btn){
+  hideSuccessBanner();
+  try{
+    if(!downloadsCap && window.claude && window.claude.use){
+      try{ downloadsCap = await window.claude.use('downloads'); }catch(e){}
+    }
+    if(downloadsCap){
+      await downloadsCap.save({filename: filename, data: blob});
+      showSuccessBanner('"' + filename + '" נשמר בהצלחה. אפשר למצוא אותו באפליקציית הקבצים / תיקיית ההורדות של המכשיר.');
+      return true;
+    }
+
+    // No platform downloads capability (standalone HTML file, or a viewer that
+    // doesn't grant it). Try, in order, the mechanisms most likely to actually
+    // work on a mobile browser:
+    var file = new File([blob], filename, {type:'application/pdf'});
+
+    // 1) Web Share API with a file: on Android this hands the PDF to the
+    //    share sheet (Drive, WhatsApp, "Save to Files", etc.) and works even
+    //    when the page itself was opened as a local file:// document, where
+    //    <a download> is frequently silently ignored by the browser.
+    if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
+      try{
+        await navigator.share({files:[file], title: filename});
+        showSuccessBanner('"' + filename + '" נשלח לשיתוף/שמירה. בחרו "שמירה בקבצים" או יעד דומה כדי לשמור אותו במכשיר.');
+        return true;
+      }catch(shareErr){
+        if(shareErr && shareErr.name === 'AbortError'){
+          // user closed the share sheet without choosing anything — not an error
+          return true;
+        }
+        // fall through to the anchor-download attempt below
+      }
+    }
+
+    // 2) A hidden <a download> anchor — works on most mobile browsers when the
+    //    page is served over http(s); frequently blocked on file:// pages.
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+    showSuccessBanner('ההורדה של "' + filename + '" הופעלה. אם הקובץ לא מופיע בתיקיית ההורדות תוך כמה שניות — נסו לפתוח את הקובץ הזה מתוך דפדפן (כתובת אינטרנט), ולא ישירות מאפליקציית הקבצים, או השתמשו בקישור לטופס באתר במקום בקובץ המקומי.');
+    return true;
+  }catch(err){
+    if(err && err.code === 'declined'){
+      // user declined the save prompt — nothing else to do
+    } else {
+      showValidationBanner(['לא הצלחנו לשמור את קובץ ה-PDF (' + ((err&&err.code)||'שגיאה לא ידועה') + '). נסו שוב, ואם זה חוזר — רעננו את הדף ונסו שוב.'], 'שגיאה בשמירת ה-PDF:');
+      console.error(err);
+    }
+    return false;
+  }
+}
+
+function validateMandatoryAccessories(){
+  var labelMap = {feeder:'פידר', cabinet:'ארונית', finisher:'יחידת גימור / מגש יציאה'};
+  var problems = [];
+  lines.forEach(function(l, idx){
+    if(!l.model) return;
+    var info = CATALOG[l.model];
+    if(!info) return;
+    ['feeder','cabinet','finisher'].forEach(function(key){
+      if(!info['mandatory_'+key]) return;
+      var checkedInput = l.el.querySelector('input[name="'+l.id+'_'+key+'"]:checked');
+      if(!checkedInput){
+        problems.push('פריט #' + (idx+1) + ' (' + l.model + '): יש לבחור ' + labelMap[key]);
+      }
+    });
+  });
+  return problems;
+}
+
+function showValidationBanner(problems, title){
+  var banner = document.getElementById('validationBanner');
+  banner.innerHTML = '<b>' + (title || 'לא ניתן להפיק PDF — חסרה בחירת אביזרי חובה:') + '</b><ul>' +
+    problems.map(function(p){ return '<li>' + p + '</li>'; }).join('') + '</ul>';
+  banner.hidden = false;
+  banner.scrollIntoView({behavior:'smooth', block:'center'});
+}
+function hideValidationBanner(){
+  document.getElementById('validationBanner').hidden = true;
+}
+function showSuccessBanner(msg){
+  var banner = document.getElementById('successBanner');
+  banner.textContent = msg;
+  banner.hidden = false;
+  banner.scrollIntoView({behavior:'smooth', block:'center'});
+  clearTimeout(showSuccessBanner._t);
+  showSuccessBanner._t = setTimeout(function(){ banner.hidden = true; }, 8000);
+}
+function hideSuccessBanner(){
+  clearTimeout(showSuccessBanner._t);
+  document.getElementById('successBanner').hidden = true;
+}
+
+function blockIfMissingAccessories(){
+  var problems = validateMandatoryAccessories();
+  if(problems.length){
+    showValidationBanner(problems);
+    return true;
+  }
+  hideValidationBanner();
+  return false;
+}
+
+document.getElementById('printOrder').addEventListener('click', async function(){
+  if(blockIfMissingAccessories()) return;
+  var btn = this, orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'מכין PDF…';
+  try{
+    var doc = await buildOrderPdf();
+    await savePdfBlob(doc.output('blob'), 'טופס הזמנה.pdf', btn);
+  } catch(err){
+    showValidationBanner(['לא הצלחנו להפיק את קובץ ה-PDF: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו שוב, ואם זה חוזר — רעננו את הדף.'], 'שגיאה בהפקת ה-PDF:');
+    console.error(err);
+  } finally { btn.disabled = false; btn.textContent = orig; }
+});
+document.getElementById('printAssembly').addEventListener('click', async function(){
+  if(blockIfMissingAccessories()) return;
+  var btn = this, orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'מכין PDF…';
+  try{
+    var doc = await buildAssemblyPdf();
+    await savePdfBlob(doc.output('blob'), 'טופס הרכבה.pdf', btn);
+  } catch(err){
+    showValidationBanner(['לא הצלחנו להפיק את קובץ ה-PDF: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו שוב, ואם זה חוזר — רעננו את הדף.'], 'שגיאה בהפקת ה-PDF:');
+    console.error(err);
+  } finally { btn.disabled = false; btn.textContent = orig; }
+});
+document.getElementById('printBoth').addEventListener('click', async function(){
+  if(blockIfMissingAccessories()) return;
+  var btn = this, orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'מכין PDF…';
+  try{
+    var doc1 = await buildOrderPdf();
+    await savePdfBlob(doc1.output('blob'), 'טופס הזמנה.pdf', btn);
+    var doc2 = await buildAssemblyPdf();
+    await savePdfBlob(doc2.output('blob'), 'טופס הרכבה.pdf', btn);
+  } catch(err){
+    showValidationBanner(['לא הצלחנו להפיק את קובץ ה-PDF: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו שוב, ואם זה חוזר — רעננו את הדף.'], 'שגיאה בהפקת ה-PDF:');
+    console.error(err);
+  } finally { btn.disabled = false; btn.textContent = orig; }
+});
+
+})();
+</script>
