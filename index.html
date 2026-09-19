@@ -356,7 +356,7 @@ table.psTable th{background:#f4f1ec}
           <div class="field">
             <label>יחידת זמן למינימום</label>
             <div class="opts">
-              <label class="opt"><input type="checkbox" id="minPrintsMonthly" checked> חודשי</label>
+              <label class="opt"><input type="checkbox" id="minPrintsMonthly"> חודשי</label>
               <label class="opt"><input type="checkbox" id="minPrintsYearly"> שנתי</label>
             </div>
           </div>
@@ -1193,7 +1193,6 @@ function clearForm(){
     else el.value = '';
   });
   document.getElementById('orderDate').value = new Date().toISOString().slice(0,10);
-  document.getElementById('minPrintsMonthly').checked = true;
 
   lines.slice().forEach(function(l){ l.el.remove(); });
   lines = [];
@@ -1219,7 +1218,13 @@ function clearForm(){
 // Downloads/גטר/הזמנות/<file>.json without any extra folder picker.
 function saveOrderToFile(){
   var data = collectFormData();
-  var name = 'הזמנה_' + slugForFile(data.fields.orderNo) + '_' + (data.fields.orderDate || new Date().toISOString().slice(0,10)) + '.json';
+  var suggested = 'הזמנה_' + slugForFile(data.fields.orderNo) + '_' + (data.fields.orderDate || new Date().toISOString().slice(0,10));
+  var typed = prompt('שם הקובץ לשמירה:', suggested);
+  if(typed === null) return; // user cancelled
+  typed = typed.trim();
+  if(!typed) typed = suggested;
+  typed = slugForFile(typed);
+  var name = typed + (/\.json$/i.test(typed) ? '' : '.json');
   var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
