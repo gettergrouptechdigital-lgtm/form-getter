@@ -198,6 +198,10 @@ textarea{resize:vertical;min-height:56px}
 .sumRow span:last-child{font-variant-numeric:tabular-nums}
 
 .actions{display:flex;flex-direction:column;gap:8px}
+.pdfGroupLabel{font-size:13.2px;font-weight:700;color:var(--muted);margin-top:4px}
+.pdfGroupLabel:first-child{margin-top:0}
+.pdfBtnRow{display:flex;gap:8px}
+.pdfBtnRow .btn{width:auto;flex:1 1 0}
 
 .legal{font-size:13.2px;color:var(--muted);line-height:1.6;background:var(--surface-2);border-radius:8px;padding:10px;margin-top:6px}
 
@@ -474,10 +478,21 @@ table.psTable th{background:#f4f1ec}
       <div class="card actions">
         <div id="validationBanner" class="validationBanner" hidden></div>
         <div id="successBanner" class="successBanner" hidden></div>
-        <button class="btn" id="printOrder" type="button">📄 טופס הזמנה — הורדת PDF</button>
-        <button class="btn secondary" id="printAssembly" type="button">🛠️ טופס הרכבה — הורדת PDF</button>
-        <button class="btn secondary" id="printBoth" type="button">הורדת שני הקבצים</button>
-        <div class="legal">בלחיצה על כפתור יופק קובץ PDF מוכן ותתבקשו לאשר את השמירה.</div>
+
+        <div class="pdfGroupLabel">📄 טופס הזמנה</div>
+        <div class="pdfBtnRow">
+          <button class="btn secondary" id="shareOrder" type="button">📤 שתף</button>
+          <button class="btn" id="saveOrder" type="button">💾 שמירה</button>
+        </div>
+
+        <div class="pdfGroupLabel">🛠️ טופס הרכבה</div>
+        <div class="pdfBtnRow">
+          <button class="btn secondary" id="shareAssembly" type="button">📤 שתף</button>
+          <button class="btn" id="saveAssembly" type="button">💾 שמירה</button>
+        </div>
+
+        <button class="btn secondary" id="printBoth" type="button">שמירת שני הקבצים</button>
+        <div class="legal">"שתף" פותח את תפריט השיתוף של המכשיר (וואטסאפ, מייל, Drive וכו'). "שמירה" מוריד את הקובץ ישירות למכשיר.</div>
       </div>
     </div>
   </div>
@@ -2058,6 +2073,40 @@ async function buildAssemblyPdf(){
   return doc;
 }
 
+// Explicit "share" action: hands the PDF straight to the device's share
+// sheet (WhatsApp, Mail, Drive, "Save to Files", etc.) via the Web Share
+// API. Kept separate from savePdfBlob() so the person chooses share vs.
+// save themselves, instead of the app guessing.
+async function sharePdfBlob(blob, filename){
+  hideSuccessBanner();
+  try{
+    var file = new File([blob], filename, {type:'application/pdf'});
+    if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
+      try{
+        await navigator.share({files:[file], title: filename});
+        showSuccessBanner('"' + filename + '" נשלח לשיתוף.');
+        return true;
+      }catch(shareErr){
+        if(shareErr && shareErr.name === 'AbortError'){
+          // user closed the share sheet without choosing anything — not an error
+          return true;
+        }
+        throw shareErr;
+      }
+    }
+    // Web Share API (with files) isn't supported on this browser/device —
+    // fall back to a direct save instead of failing silently.
+    showValidationBanner(['שיתוף קבצים אינו נתמך בדפדפן הזה — הקובץ יישמר במקום זאת.'], 'שיתוף לא זמין:');
+    return await savePdfBlob(blob, filename);
+  }catch(err){
+    showValidationBanner(['לא הצלחנו לשתף את קובץ ה-PDF: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו את כפתור "שמירה" במקום.'], 'שגיאה בשיתוף:');
+    console.error(err);
+    return false;
+  }
+}
+
+// Explicit "save" action: saves the PDF straight to the device, without
+// first offering the share sheet.
 async function savePdfBlob(blob, filename, btn){
   hideSuccessBanner();
   try{
@@ -2070,31 +2119,10 @@ async function savePdfBlob(blob, filename, btn){
       return true;
     }
 
-    // No platform downloads capability (standalone HTML file, or a viewer that
-    // doesn't grant it). Try, in order, the mechanisms most likely to actually
-    // work on a mobile browser:
-    var file = new File([blob], filename, {type:'application/pdf'});
-
-    // 1) Web Share API with a file: on Android this hands the PDF to the
-    //    share sheet (Drive, WhatsApp, "Save to Files", etc.) and works even
-    //    when the page itself was opened as a local file:// document, where
-    //    <a download> is frequently silently ignored by the browser.
-    if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
-      try{
-        await navigator.share({files:[file], title: filename});
-        showSuccessBanner('"' + filename + '" נשלח לשיתוף/שמירה. בחרו "שמירה בקבצים" או יעד דומה כדי לשמור אותו במכשיר.');
-        return true;
-      }catch(shareErr){
-        if(shareErr && shareErr.name === 'AbortError'){
-          // user closed the share sheet without choosing anything — not an error
-          return true;
-        }
-        // fall through to the anchor-download attempt below
-      }
-    }
-
-    // 2) A hidden <a download> anchor — works on most mobile browsers when the
-    //    page is served over http(s); frequently blocked on file:// pages.
+    // No platform downloads capability (standalone HTML file, or a viewer
+    // that doesn't grant it) — use a hidden <a download> anchor. Works on
+    // most mobile browsers when the page is served over http(s);
+    // frequently blocked on file:// pages (use "שתף" there instead).
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
@@ -2168,30 +2196,31 @@ function blockIfMissingAccessories(){
   return false;
 }
 
-document.getElementById('printOrder').addEventListener('click', async function(){
-  if(blockIfMissingAccessories()) return;
-  var btn = this, orig = btn.textContent;
-  btn.disabled = true; btn.textContent = 'מכין PDF…';
-  try{
-    var doc = await buildOrderPdf();
-    await savePdfBlob(doc.output('blob'), 'טופס הזמנה.pdf', btn);
-  } catch(err){
-    showValidationBanner(['לא הצלחנו להפיק את קובץ ה-PDF: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו שוב, ואם זה חוזר — רעננו את הדף.'], 'שגיאה בהפקת ה-PDF:');
-    console.error(err);
-  } finally { btn.disabled = false; btn.textContent = orig; }
-});
-document.getElementById('printAssembly').addEventListener('click', async function(){
-  if(blockIfMissingAccessories()) return;
-  var btn = this, orig = btn.textContent;
-  btn.disabled = true; btn.textContent = 'מכין PDF…';
-  try{
-    var doc = await buildAssemblyPdf();
-    await savePdfBlob(doc.output('blob'), 'טופס הרכבה.pdf', btn);
-  } catch(err){
-    showValidationBanner(['לא הצלחנו להפיק את קובץ ה-PDF: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו שוב, ואם זה חוזר — רעננו את הדף.'], 'שגיאה בהפקת ה-PDF:');
-    console.error(err);
-  } finally { btn.disabled = false; btn.textContent = orig; }
-});
+function wirePdfActionButton(id, buildFn, filename, action){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('click', async function(){
+    if(blockIfMissingAccessories()) return;
+    var btn = this, orig = btn.textContent;
+    btn.disabled = true; btn.textContent = 'מכין PDF…';
+    try{
+      var doc = await buildFn();
+      if(action === 'share'){
+        await sharePdfBlob(doc.output('blob'), filename);
+      } else {
+        await savePdfBlob(doc.output('blob'), filename, btn);
+      }
+    } catch(err){
+      showValidationBanner(['לא הצלחנו להפיק את קובץ ה-PDF: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו שוב, ואם זה חוזר — רעננו את הדף.'], 'שגיאה בהפקת ה-PDF:');
+      console.error(err);
+    } finally { btn.disabled = false; btn.textContent = orig; }
+  });
+}
+wirePdfActionButton('shareOrder', buildOrderPdf, 'טופס הזמנה.pdf', 'share');
+wirePdfActionButton('saveOrder', buildOrderPdf, 'טופס הזמנה.pdf', 'save');
+wirePdfActionButton('shareAssembly', buildAssemblyPdf, 'טופס הרכבה.pdf', 'share');
+wirePdfActionButton('saveAssembly', buildAssemblyPdf, 'טופס הרכבה.pdf', 'save');
+
 document.getElementById('printBoth').addEventListener('click', async function(){
   if(blockIfMissingAccessories()) return;
   var btn = this, orig = btn.textContent;
