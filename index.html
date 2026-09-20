@@ -306,7 +306,7 @@ table.psTable th{background:#f4f1ec}
           <div class="field"><label>מספר לקוח</label><input id="custNo"></div>
           <div class="field"><label>טלפון</label><input id="custPhone"></div>
           <div class="field"><label>פקס</label><input id="custFax"></div>
-          <div class="field"><label>נייד</label><input id="custMobile"></div>
+          <div class="field"><label>טלפון למונים</label><input id="meterPhone"></div>
         </div>
         <div class="row">
           <div class="field wide"><label>כתובת</label><input id="custAddr"></div>
@@ -320,7 +320,7 @@ table.psTable th{background:#f4f1ec}
         <div class="row">
           <div class="field"><label>איש קשר לאספקה</label><input id="shipContact"></div>
           <div class="field"><label>טלפון איש קשר</label><input id="shipContactPhone"></div>
-          <div class="field"><label>טלפון למונים</label><input id="meterPhone"></div>
+          <div class="field"><label>נייד</label><input id="custMobile"></div>
         </div>
       </div>
 
@@ -2196,7 +2196,25 @@ function blockIfMissingAccessories(){
   return false;
 }
 
-function wirePdfActionButton(id, buildFn, filename, action){
+function sanitizeFilePart(s){ return String(s||'').replace(/[\\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim(); }
+function buildOrderFilename(){
+  var name = sanitizeFilePart(val('custName'));
+  var ono = sanitizeFilePart(val('orderNo'));
+  var parts = ['הזמנה'];
+  if(name) parts.push(name);
+  if(ono) parts.push(ono);
+  return parts.join(' - ') + '.pdf';
+}
+function buildAssemblyFilename(){
+  var name = sanitizeFilePart(val('custName'));
+  var ono = sanitizeFilePart(val('orderNo'));
+  var parts = ['טופס הרכבה'];
+  if(name) parts.push(name);
+  if(ono) parts.push(ono);
+  return parts.join(' - ') + '.pdf';
+}
+
+function wirePdfActionButton(id, buildFn, filenameFn, action){
   var el = document.getElementById(id);
   if(!el) return;
   el.addEventListener('click', async function(){
@@ -2205,6 +2223,7 @@ function wirePdfActionButton(id, buildFn, filename, action){
     btn.disabled = true; btn.textContent = 'מכין PDF…';
     try{
       var doc = await buildFn();
+      var filename = filenameFn();
       if(action === 'share'){
         await sharePdfBlob(doc.output('blob'), filename);
       } else {
@@ -2216,10 +2235,10 @@ function wirePdfActionButton(id, buildFn, filename, action){
     } finally { btn.disabled = false; btn.textContent = orig; }
   });
 }
-wirePdfActionButton('shareOrder', buildOrderPdf, 'טופס הזמנה.pdf', 'share');
-wirePdfActionButton('saveOrder', buildOrderPdf, 'טופס הזמנה.pdf', 'save');
-wirePdfActionButton('shareAssembly', buildAssemblyPdf, 'טופס הרכבה.pdf', 'share');
-wirePdfActionButton('saveAssembly', buildAssemblyPdf, 'טופס הרכבה.pdf', 'save');
+wirePdfActionButton('shareOrder', buildOrderPdf, buildOrderFilename, 'share');
+wirePdfActionButton('saveOrder', buildOrderPdf, buildOrderFilename, 'save');
+wirePdfActionButton('shareAssembly', buildAssemblyPdf, buildAssemblyFilename, 'share');
+wirePdfActionButton('saveAssembly', buildAssemblyPdf, buildAssemblyFilename, 'save');
 
 document.getElementById('printBoth').addEventListener('click', async function(){
   if(blockIfMissingAccessories()) return;
@@ -2227,9 +2246,9 @@ document.getElementById('printBoth').addEventListener('click', async function(){
   btn.disabled = true; btn.textContent = 'מכין PDF…';
   try{
     var doc1 = await buildOrderPdf();
-    await savePdfBlob(doc1.output('blob'), 'טופס הזמנה.pdf', btn);
+    await savePdfBlob(doc1.output('blob'), buildOrderFilename(), btn);
     var doc2 = await buildAssemblyPdf();
-    await savePdfBlob(doc2.output('blob'), 'טופס הרכבה.pdf', btn);
+    await savePdfBlob(doc2.output('blob'), buildAssemblyFilename(), btn);
   } catch(err){
     showValidationBanner(['לא הצלחנו להפיק את קובץ ה-PDF: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו שוב, ואם זה חוזר — רעננו את הדף.'], 'שגיאה בהפקת ה-PDF:');
     console.error(err);
