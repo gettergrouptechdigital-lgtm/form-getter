@@ -492,7 +492,14 @@ table.psTable th{background:#f4f1ec}
         </div>
 
         <button class="btn secondary" id="printBoth" type="button">שמירת שני הקבצים</button>
-        <div class="legal">"שתף" פותח את תפריט השיתוף של המכשיר (וואטסאפ, מייל, Drive וכו'). "שמירה" מוריד את הקובץ ישירות למכשיר.</div>
+
+        <div class="pdfGroupLabel">📝 הסכם</div>
+        <div class="pdfBtnRow">
+          <button class="btn secondary" id="shareAgreement" type="button">📤 שתף הסכם</button>
+          <button class="btn" id="saveAgreement" type="button">💾 שמור הסכם</button>
+        </div>
+
+        <div class="legal">"שתף" פותח את תפריט השיתוף של המכשיר (וואטסאפ, מייל, Drive וכו'). "שמירה" מוריד את הקובץ ישירות למכשיר. הפקת הסכם אוטומטית זמינה כרגע רק עבור תיאור עסקה "שכירות חודשית".</div>
       </div>
     </div>
   </div>
@@ -660,6 +667,9 @@ table.psTable th{background:#f4f1ec}
 <script src="jspdf.umd.min.js"></script>
 <script src="data.js"></script>
 <script src="fonts.js"></script>
+<script src="pdf-lib.min.js"></script>
+<script src="fontkit.umd.min.js"></script>
+<script src="agreements.js"></script>
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
@@ -1783,6 +1793,264 @@ function drawItemsTable(doc, ctx, columns, rows){
   });
 }
 
+/* ============================================================
+   Agreement (הסכם) generation.
+   Each supported deal-description ("תיאור עסקה") has an agreement
+   template: the ORIGINAL Word agreement, converted once (server-side,
+   at build time) into a PDF, embedded below as a base64 string
+   (see agreements.js). The look, order and wording of the agreement
+   itself is untouched — at runtime we only overlay the currently-blank
+   underscore fields with values from the form, using pdf-lib (which can
+   load/modify an existing PDF, unlike jsPDF which only creates new
+   ones), then append a machines appendix page built with the same
+   items-table code used for the order PDF.
+   ============================================================ */
+var MONTH_HE_NAMES = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+function b64ToBytes(b64){
+  var bin = atob(b64);
+  var bytes = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+// Draws ONE same-script run (pure Hebrew, or pure Latin/digits — never
+// mixed) with pdf-lib. Empirically (verified by rendering test PDFs),
+// pdf-lib + fontkit already lays out a pure-Hebrew run in correct visual
+// order on its own — manually reversing the characters breaks it. Only
+// MIXING Hebrew and digits/Latin in a single drawText call is unsafe (the
+// digit substring comes out reversed, e.g. "24" -> "42"), which is exactly
+// why callers must pre-split into same-script runs before calling this;
+// each run is then drawn completely as-is, no reversal. xRight is the
+// right edge the run is aligned to. Returns the drawn width (pt).
+function pdfLibDrawRTL(page, text, xRight, y, font, size, color){
+  text = (text===null||text===undefined) ? '' : String(text);
+  if(!text) return 0;
+  var w = font.widthOfTextAtSize(text, size);
+  page.drawText(text, {x: xRight - w, y: y, size: size, font: font, color: color});
+  return w;
+}
+
+// Mirrors drawMixedRTLRun's word-grouping algorithm (see above, jsPDF
+// version) for pdf-lib: groups consecutive same-script words into runs and
+// lays them out right-to-left with a running cursor, drawing each run with
+// pdfLibDrawRTL. Handles a value that mixes Hebrew and Latin/digit words
+// (e.g. a customer name with a Latin brand word) correctly; plain
+// single-script values (a date part, a price) go through the same path
+// with just one run.
+function pdfLibDrawMixedRTL(page, text, xRight, y, font, size, color){
+  text = (text===null||text===undefined) ? '' : String(text);
+  if(!text) return 0;
+  var words = text.split(/\s+/).filter(function(w){ return w.length; });
+  if(!words.length) return 0;
+  var runs = [];
+  words.forEach(function(w){
+    var cls = HEBREW_RE.test(w) ? 'other' : 'latin';
+    var last = runs[runs.length-1];
+    if(last && last.cls===cls) last.words.push(w);
+    else runs.push({cls:cls, words:[w]});
+  });
+  var cursor = xRight;
+  var spaceW = font.widthOfTextAtSize(' ', size);
+  runs.forEach(function(run, idx){
+    if(idx>0) cursor -= spaceW;
+    var runText = run.words.join(' ');
+    var w = pdfLibDrawRTL(page, runText, cursor, y, font, size, color);
+    cursor -= w;
+  });
+  return xRight - cursor;
+}
+
+// Total rendered width of pdfLibDrawMixedRTL's output at a given size,
+// without drawing anything — used to auto-shrink a blank's fill text to
+// fit the space available before the neighboring printed label.
+function pdfLibMeasureMixedRTL(text, font, size){
+  text = (text===null||text===undefined) ? '' : String(text);
+  if(!text) return 0;
+  var words = text.split(/\s+/).filter(function(w){ return w.length; });
+  if(!words.length) return 0;
+  var runs = [];
+  words.forEach(function(w){
+    var cls = HEBREW_RE.test(w) ? 'other' : 'latin';
+    var last = runs[runs.length-1];
+    if(last && last.cls===cls) last.words.push(w);
+    else runs.push({cls:cls, words:[w]});
+  });
+  var total = 0;
+  var spaceW = font.widthOfTextAtSize(' ', size);
+  runs.forEach(function(run, idx){
+    if(idx>0) total += spaceW;
+    total += font.widthOfTextAtSize(run.words.join(' '), size);
+  });
+  return total;
+}
+
+// Picks the largest font size (down to a 5.5pt floor, in 0.5pt steps) at
+// which `text` fits within maxWidth, so a long value (e.g. a long customer
+// name) shrinks instead of overlapping the agreement's printed wording.
+function pdfLibFitSize(text, font, startSize, maxWidth){
+  var size = startSize;
+  while(size > 5.5 && pdfLibMeasureMixedRTL(text, font, size) > maxWidth){
+    size -= 0.5;
+  }
+  return size;
+}
+
+// Builds a standalone one-page PDF with just the "נספח א' - רשימת מכונות"
+// title and the same items table used in the order PDF, so the appendix
+// lists the machines exactly as they appear on the order.
+function buildMachinesAppendixPdf(){
+  ensureJsPdfLoaded();
+  var doc = new window.jspdf.jsPDF({unit:'mm', format:'a4', compress:true});
+  ensurePdfFonts(doc);
+  var ctx = {y:20};
+  drawMixedRTL(doc, "נספח א' - רשימת מכונות", PDF_PW/2, 15, {fontStyle:'bold', fontSize:15, color:[17,17,17], align:'center'});
+  doc.setDrawColor(200,0,95); doc.setLineWidth(0.6); doc.line(PDF_LEFT, ctx.y, PDF_RIGHT, ctx.y);
+  ctx.y += 6;
+  var rows = [];
+  lines.forEach(function(l){
+    if(!l.model) return;
+    var info = CATALOG[l.model];
+    var qty = Number(l.el.querySelector('.qty').value)||0;
+    var price = Number(l.el.querySelector('.price').value)||0;
+    rows.push({name: l.model + ' — ' + (info.type||''), qty: String(qty), price: fmt(price), bold:true});
+    selectedAccessoryRows(l).forEach(function(a){
+      rows.push({name: '   ' + a.name, qty:'1', price:'—', bold:false});
+    });
+  });
+  drawItemsTable(doc, ctx, [
+    {label:'דגם / אביזר', width:80, key:'name'},
+    {label:'כמות', width:25, key:'qty'},
+    {label:'מחיר ליחידה', width:35, key:'price'},
+    {label:'מספר מכונה', width:50, key:'serial'}
+  ], rows);
+  return doc;
+}
+
+// Deal-description ("תיאור עסקה") values mapped to the agreement template
+// available for each. Only "שכירות חודשית" has a template so far; the other
+// 3 agreement types (קנייה / שכירות / שכר-מכר) will be added the same way
+// once their Word originals are supplied.
+var AGREEMENT_TYPE_BY_DEALDESC = {
+  'שכירות חודשית': 'monthly'
+};
+
+// Blank-field coordinates measured directly off the converted agreement PDF
+// (pdfplumber char-level inspection of the underscore runs). xRight/bottom
+// are in PDF points, top-origin as pdfplumber reports them; converted to
+// pdf-lib's bottom-origin y at draw time.
+// maxWidth for each blank = distance from its right edge (xRight, where our
+// fill text is anchored) back to the nearest printed character of the
+// template's own wording, measured directly off the converted PDF (see
+// build notes) — so a long value auto-shrinks (via pdfLibFitSize) instead
+// of overlapping neighboring text like the "₪" sign or "לחודש"/"שנת".
+function monthlyAgreementBlanks(pdfDoc, values){
+  var page1 = pdfDoc.getPages()[0];
+  return [
+    {page: page1, xRight: 368.3, bottom: 85.4,  maxWidth: 33,  value: values.day},
+    {page: page1, xRight: 295.2, bottom: 85.4,  maxWidth: 27,  value: values.month},
+    {page: page1, xRight: 239.8, bottom: 85.4,  maxWidth: 180, value: values.year},
+    {page: page1, xRight: 479.9, bottom: 149.4, maxWidth: 215, value: values.custName},
+    {page: page1, xRight: 477.1, bottom: 162.2, maxWidth: 250, value: values.custAddr},
+    {page: page1, xRight: 414.1, bottom: 370.2, maxWidth: 16,  value: values.dealPeriod},
+    {page: page1, xRight: 437.1, bottom: 404.1, maxWidth: 23,  value: values.dealPeriod},
+    {page: page1, xRight: 82.7,  bottom: 424.1, maxWidth: 20,  value: values.priceMono},
+    {page: page1, xRight: 414.2, bottom: 438.0, maxWidth: 40,  value: values.priceColor},
+    {page: page1, xRight: 285.1, bottom: 438.0, maxWidth: 36,  value: values.priceScan},
+    {page: page1, xRight: 197.8, bottom: 602.2, maxWidth: 29,  value: values.paymentDays}
+  ];
+}
+
+function ensurePdfLibLoaded(){
+  if(!window.PDFLib){
+    throw new Error('ספריית עריכת ה-PDF (pdf-lib) לא נטענה. בדקו חיבור לאינטרנט ונסו לרענן את הדף.');
+  }
+  if(!window.fontkit){
+    throw new Error('ספריית הפונטים (fontkit) לא נטענה. בדקו חיבור לאינטרנט ונסו לרענן את הדף.');
+  }
+}
+
+async function buildAgreementPdf(){
+  var dealDesc = val('dealDesc');
+  var type = AGREEMENT_TYPE_BY_DEALDESC[dealDesc];
+  if(!type){
+    throw new Error('הפקת הסכם אוטומטית זמינה כרגע רק עבור תיאור עסקה "שכירות חודשית". עבור סוגי עסקה אחרים יש להפיק את ההסכם באופן ידני בינתיים.');
+  }
+  ensurePdfLibLoaded();
+
+  var PDFDocument = window.PDFLib.PDFDocument;
+  var rgb = window.PDFLib.rgb;
+
+  var templateB64 = type==='monthly' ? AGREEMENT_MONTHLY_PDF_B64 : null;
+  if(!templateB64){
+    throw new Error('תבנית ההסכם עבור סוג עסקה זה עדיין לא הוגדרה במערכת.');
+  }
+
+  var pdfDoc = await PDFDocument.load(b64ToBytes(templateB64));
+  pdfDoc.registerFontkit(window.fontkit);
+  var font = await pdfDoc.embedFont(b64ToBytes(ARIMO_REGULAR_B64), {subset:true});
+  var ink = rgb(0.07,0.07,0.07);
+  var size = 9;
+
+  var od = val('orderDate');
+  var day='', month='', year='';
+  if(od){
+    var parts = od.split('-');
+    if(parts.length===3){
+      year = parts[0];
+      var mi = parseInt(parts[1],10);
+      month = MONTH_HE_NAMES[mi-1] || '';
+      day = String(parseInt(parts[2],10));
+    }
+  }
+  var paymentDays = '';
+  var ptRaw = val('paymentTerms');
+  if(ptRaw){
+    var pm = ptRaw.match(/(\d+)/);
+    paymentDays = pm ? pm[1] : ptRaw;
+  }
+
+  var values = {
+    day: day, month: month, year: year,
+    custName: val('custName'),
+    custAddr: val('custAddr'),
+    dealPeriod: val('dealPeriod'),
+    priceMono: val('priceMono'),
+    priceColor: val('priceColor'),
+    priceScan: val('priceScan'),
+    paymentDays: paymentDays
+  };
+
+  var blanks = type==='monthly' ? monthlyAgreementBlanks(pdfDoc, values) : [];
+  blanks.forEach(function(b){
+    if(!b.value && b.value !== 0) return;
+    var text = String(b.value);
+    var H = b.page.getHeight();
+    var y = H - b.bottom + 1.6;
+    var fitSize = b.maxWidth ? pdfLibFitSize(text, font, size, b.maxWidth) : size;
+    pdfLibDrawMixedRTL(b.page, text, b.xRight, y, font, fitSize, ink);
+  });
+
+  // Appendix: same machines table as the order PDF, as its own page.
+  var appendixDoc = buildMachinesAppendixPdf();
+  var appendixBytes = appendixDoc.output('arraybuffer');
+  var appendixPdf = await PDFDocument.load(appendixBytes);
+  var copied = await pdfDoc.copyPages(appendixPdf, [0]);
+  pdfDoc.addPage(copied[0]);
+
+  var outBytes = await pdfDoc.save();
+  return new Blob([outBytes], {type:'application/pdf'});
+}
+
+function buildAgreementFilename(){
+  var name = sanitizeFilePart(val('custName'));
+  var ono = sanitizeFilePart(val('orderNo'));
+  var parts = ['הסכם שכירות חודשית'];
+  if(name) parts.push(name);
+  if(ono) parts.push(ono);
+  return parts.join(' - ') + '.pdf';
+}
+
 async function getLogoDataUrl(){
   if(getLogoDataUrl._cache) return getLogoDataUrl._cache;
   var img = document.querySelector('#printOrderSheet .psLogo');
@@ -2222,12 +2490,13 @@ function wirePdfActionButton(id, buildFn, filenameFn, action){
     var btn = this, orig = btn.textContent;
     btn.disabled = true; btn.textContent = 'מכין PDF…';
     try{
-      var doc = await buildFn();
+      var result = await buildFn();
+      var blob = (result instanceof Blob) ? result : result.output('blob');
       var filename = filenameFn();
       if(action === 'share'){
-        await sharePdfBlob(doc.output('blob'), filename);
+        await sharePdfBlob(blob, filename);
       } else {
-        await savePdfBlob(doc.output('blob'), filename, btn);
+        await savePdfBlob(blob, filename, btn);
       }
     } catch(err){
       showValidationBanner(['לא הצלחנו להפיק את קובץ ה-PDF: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו שוב, ואם זה חוזר — רעננו את הדף.'], 'שגיאה בהפקת ה-PDF:');
@@ -2239,6 +2508,8 @@ wirePdfActionButton('shareOrder', buildOrderPdf, buildOrderFilename, 'share');
 wirePdfActionButton('saveOrder', buildOrderPdf, buildOrderFilename, 'save');
 wirePdfActionButton('shareAssembly', buildAssemblyPdf, buildAssemblyFilename, 'share');
 wirePdfActionButton('saveAssembly', buildAssemblyPdf, buildAssemblyFilename, 'save');
+wirePdfActionButton('shareAgreement', buildAgreementPdf, buildAgreementFilename, 'share');
+wirePdfActionButton('saveAgreement', buildAgreementPdf, buildAgreementFilename, 'save');
 
 document.getElementById('printBoth').addEventListener('click', async function(){
   if(blockIfMissingAccessories()) return;
