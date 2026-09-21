@@ -2280,18 +2280,17 @@ async function buildAssemblyPdf(){
     if(!l.model) return;
     var info = CATALOG[l.model];
     var qty = Number(l.el.querySelector('.qty').value)||1;
-    arows.push({model:l.model, acc:'', mekt:info.mekt||'', weight:info.weight||'', width:info.width||'', qty:String(qty), bold:true});
+    arows.push({name:l.model, mekt:info.mekt||'', weight:info.weight||'', width:info.width||'', qty:String(qty), bold:true});
     selectedAccessoryRows(l).forEach(function(a){
-      arows.push({model:'', acc:a.name, mekt:a.mekt||'', weight:a.weight||'', width:a.width||'', qty:'1', bold:false});
+      arows.push({name:'   ' + a.name, mekt:a.mekt||'', weight:a.weight||'', width:a.width||'', qty:'1', bold:false});
     });
   });
   drawItemsTable(doc, ctx, [
-    {label:'דגם', width:34, key:'model'},
-    {label:'אביזרים', width:56, key:'acc'},
-    {label:'מק"ט', width:28, key:'mekt'},
-    {label:'משקל כולל (ק"ג)', width:26, key:'weight'},
-    {label:"רוחב מינ' (ס\"מ)", width:26, key:'width'},
-    {label:'כמות', width:20, key:'qty'}
+    {label:'דגם / אביזר', width:55, key:'name'},
+    {label:'מק"ט', width:60, key:'mekt'},
+    {label:'משקל כולל (ק"ג)', width:25, key:'weight'},
+    {label:"רוחב מינ' (ס\"מ)", width:25, key:'width'},
+    {label:'כמות', width:25, key:'qty'}
   ], arows);
   ctx.y += 2;
   if(val('returnMachines')){
@@ -2329,14 +2328,6 @@ async function buildAssemblyPdf(){
     ry += 3.8;
   });
   ctx.y = boxTop + boxH + 8;
-
-  pdfCheckBreak(doc, ctx, 22);
-  var sigColW2 = (PDF_CW - 10)/2, sig1R2 = PDF_RIGHT, sig2R2 = PDF_RIGHT - sigColW2 - 10;
-  var sigLineY2 = ctx.y + 10;
-  hrule(doc, sig1R2-sigColW2, sig1R2, sigLineY2, 20);
-  hrule(doc, sig2R2-sigColW2, sig2R2, sigLineY2, 20);
-  drawMixedRTL(doc, 'תאריך, שם וחתימת הטכנאי המרכיב', sig1R2 - sigColW2/2, sigLineY2+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
-  drawMixedRTL(doc, 'תאריך, שם וחתימת הלקוח לאישור קבלה', sig2R2 - sigColW2/2, sigLineY2+3.6, {fontStyle:'normal', fontSize:8.3, color:[17,17,17], align:'center'});
 
   return doc;
 }
