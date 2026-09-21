@@ -2288,8 +2288,13 @@ async function buildAssemblyPdf(){
   drawItemsTable(doc, ctx, [
     {label:'דגם / אביזר', width:55, key:'name'},
     {label:'מק"ט', width:60, key:'mekt'},
-    {label:'משקל כולל (ק"ג)', width:25, key:'weight'},
-    {label:"רוחב מינ' (ס\"מ)", width:25, key:'width'},
+    // NOTE: parens intentionally reversed in these source strings — jsPDF's
+    // R2L reverses character order within a Hebrew run but does NOT mirror
+    // neutral punctuation like ( ), so an authored "(ק"ג)" renders visually
+    // as ")ק"ג(". Writing them backwards here compensates, matching the
+    // hebFix()/drawMixedRTL compensation pattern used throughout this file.
+    {label:'משקל כולל )ק"ג(', width:25, key:'weight'},
+    {label:"רוחב מינ' )ס\"מ(", width:25, key:'width'},
     {label:'כמות', width:25, key:'qty'}
   ], arows);
   ctx.y += 2;
