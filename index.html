@@ -357,8 +357,8 @@ table.psTable th{background:#f4f1ec}
           </div>
         </div>
         <div class="row">
-          <div class="field"><label>מינימום צילומים שחור</label><input id="minPrintsMono" type="number" min="0"></div>
-          <div class="field"><label>מינימום צילומים צבע</label><input id="minPrintsColor" type="number" min="0"></div>
+          <div class="field"><label>מינימום צילומים שחור</label><input id="minPrintsMono" type="number" min="0" value="1500"></div>
+          <div class="field"><label>מינימום צילומים צבע</label><input id="minPrintsColor" type="number" min="0" value="250"></div>
           <div class="field">
             <label>יחידת זמן למינימום</label>
             <div class="opts">
@@ -479,19 +479,13 @@ table.psTable th{background:#f4f1ec}
         <div id="validationBanner" class="validationBanner" hidden></div>
         <div id="successBanner" class="successBanner" hidden></div>
 
-        <div class="pdfGroupLabel">📄 טופס הזמנה</div>
-        <div class="pdfBtnRow">
-          <button class="btn secondary" id="shareOrder" type="button">📤 שתף</button>
-          <button class="btn" id="saveOrder" type="button">💾 שמירה</button>
-        </div>
+        <button class="btn secondary" id="previewBtn" type="button">👁️ תצוגה מקדימה</button>
 
-        <div class="pdfGroupLabel">🛠️ טופס הרכבה</div>
+        <div class="pdfGroupLabel">📄 טופס הזמנה + טופס הרכבה</div>
         <div class="pdfBtnRow">
-          <button class="btn secondary" id="shareAssembly" type="button">📤 שתף</button>
-          <button class="btn" id="saveAssembly" type="button">💾 שמירה</button>
+          <button class="btn secondary" id="shareOrderPackage" type="button">📤 שתף</button>
+          <button class="btn" id="saveOrderPackage" type="button">💾 שמירה</button>
         </div>
-
-        <button class="btn secondary" id="printBoth" type="button">שמירת שני הקבצים</button>
 
         <div class="pdfGroupLabel">📝 הסכם</div>
         <div class="pdfBtnRow">
@@ -499,7 +493,7 @@ table.psTable th{background:#f4f1ec}
           <button class="btn" id="saveAgreement" type="button">💾 שמור הסכם</button>
         </div>
 
-        <div class="legal">"שתף" פותח את תפריט השיתוף של המכשיר (וואטסאפ, מייל, Drive וכו'). "שמירה" מוריד את הקובץ ישירות למכשיר. הפקת הסכם אוטומטית זמינה כרגע רק עבור תיאור עסקה "שכירות חודשית".</div>
+        <div class="legal">קובץ טופס ההזמנה + טופס ההרכבה מופק כקובץ PDF אחד — עמוד ראשון טופס הזמנה, עמוד שני טופס הרכבה. "תצוגה מקדימה" פותחת את כל הקבצים שיופקו לבדיקה, בלי לשתף או לשמור. "שתף" פותח את תפריט השיתוף של המכשיר (וואטסאפ, מייל, Drive וכו'). "שמירה" מוריד את הקובץ ישירות למכשיר. הפקת הסכם אוטומטית זמינה כרגע עבור תיאורי עסקה "שכירות חודשית" ו"שכירות".</div>
       </div>
     </div>
   </div>
@@ -1898,8 +1892,11 @@ function pdfLibFitSize(text, font, startSize, maxWidth){
 
 // Builds a standalone one-page PDF with just the "נספח א' - רשימת מכונות"
 // title and the same items table used in the order PDF, so the appendix
-// lists the machines exactly as they appear on the order.
-function buildMachinesAppendixPdf(){
+// lists the machines exactly as they appear on the order. includePrice=false
+// (used by the pay-per-print "שכירות" agreement) drops the "מחיר ליחידה"
+// column, per that agreement's request.
+function buildMachinesAppendixPdf(includePrice){
+  if(includePrice === undefined) includePrice = true;
   ensureJsPdfLoaded();
   var doc = new window.jspdf.jsPDF({unit:'mm', format:'a4', compress:true});
   ensurePdfFonts(doc);
@@ -1918,21 +1915,26 @@ function buildMachinesAppendixPdf(){
       rows.push({name: '   ' + a.name, qty:'1', price:'—', bold:false});
     });
   });
-  drawItemsTable(doc, ctx, [
+  var columns = includePrice ? [
     {label:'דגם / אביזר', width:80, key:'name'},
     {label:'כמות', width:25, key:'qty'},
     {label:'מחיר ליחידה', width:35, key:'price'},
     {label:'מספר מכונה', width:50, key:'serial'}
-  ], rows);
+  ] : [
+    {label:'דגם / אביזר', width:115, key:'name'},
+    {label:'כמות', width:25, key:'qty'},
+    {label:'מספר מכונה', width:50, key:'serial'}
+  ];
+  drawItemsTable(doc, ctx, columns, rows);
   return doc;
 }
 
 // Deal-description ("תיאור עסקה") values mapped to the agreement template
-// available for each. Only "שכירות חודשית" has a template so far; the other
-// 3 agreement types (קנייה / שכירות / שכר-מכר) will be added the same way
-// once their Word originals are supplied.
+// available for each. "קנייה" and "שכר/מכר" still don't have a template;
+// they'll be added the same way once their Word originals are supplied.
 var AGREEMENT_TYPE_BY_DEALDESC = {
-  'שכירות חודשית': 'monthly'
+  'שכירות חודשית': 'monthly',
+  'שכירות': 'rental'
 };
 
 // Blank-field coordinates measured directly off the converted agreement PDF
@@ -1961,6 +1963,26 @@ function monthlyAgreementBlanks(pdfDoc, values){
   ];
 }
 
+// "שכירות" (pay-per-print / usage-based rental) — same coordinate-extraction
+// method as monthlyAgreementBlanks, measured off the converted rental.pdf.
+function rentalAgreementBlanks(pdfDoc, values){
+  var page1 = pdfDoc.getPages()[0];
+  return [
+    {page: page1, xRight: 416.7, bottom: 84.3,  maxWidth: 50,    value: values.day},
+    {page: page1, xRight: 323.2, bottom: 84.3,  maxWidth: 40,    value: values.month},
+    {page: page1, xRight: 252.9, bottom: 84.3,  maxWidth: 50,    value: values.year},
+    {page: page1, xRight: 488.9, bottom: 147.1, maxWidth: 104.5, value: values.custName},
+    {page: page1, xRight: 486.1, bottom: 159.9, maxWidth: 159.5, value: values.custAddr},
+    {page: page1, xRight: 418.5, bottom: 359.3, maxWidth: 28,    value: values.dealPeriod},
+    {page: page1, xRight: 365.4, bottom: 417.8, maxWidth: 56,    value: values.minPrintsMono},
+    {page: page1, xRight: 196.2, bottom: 417.8, maxWidth: 44,    value: values.minPrintsColor},
+    {page: page1, xRight: 214.9, bottom: 433.1, maxWidth: 36,    value: values.priceMono},
+    {page: page1, xRight: 89.2,  bottom: 433.1, maxWidth: 40,    value: values.priceColor},
+    {page: page1, xRight: 417.7, bottom: 447.0, maxWidth: 36,    value: values.priceScan},
+    {page: page1, xRight: 258.4, bottom: 611.2, maxWidth: 28,    value: values.paymentDays}
+  ];
+}
+
 function ensurePdfLibLoaded(){
   if(!window.PDFLib){
     throw new Error('ספריית עריכת ה-PDF (pdf-lib) לא נטענה. בדקו חיבור לאינטרנט ונסו לרענן את הדף.');
@@ -1974,14 +1996,14 @@ async function buildAgreementPdf(){
   var dealDesc = val('dealDesc');
   var type = AGREEMENT_TYPE_BY_DEALDESC[dealDesc];
   if(!type){
-    throw new Error('הפקת הסכם אוטומטית זמינה כרגע רק עבור תיאור עסקה "שכירות חודשית". עבור סוגי עסקה אחרים יש להפיק את ההסכם באופן ידני בינתיים.');
+    throw new Error('הפקת הסכם אוטומטית זמינה כרגע רק עבור תיאורי עסקה "שכירות חודשית" ו"שכירות". עבור סוגי עסקה אחרים יש להפיק את ההסכם באופן ידני בינתיים.');
   }
   ensurePdfLibLoaded();
 
   var PDFDocument = window.PDFLib.PDFDocument;
   var rgb = window.PDFLib.rgb;
 
-  var templateB64 = type==='monthly' ? AGREEMENT_MONTHLY_PDF_B64 : null;
+  var templateB64 = type==='monthly' ? AGREEMENT_MONTHLY_PDF_B64 : type==='rental' ? AGREEMENT_RENTAL_PDF_B64 : null;
   if(!templateB64){
     throw new Error('תבנית ההסכם עבור סוג עסקה זה עדיין לא הוגדרה במערכת.');
   }
@@ -2018,10 +2040,14 @@ async function buildAgreementPdf(){
     priceMono: val('priceMono'),
     priceColor: val('priceColor'),
     priceScan: val('priceScan'),
-    paymentDays: paymentDays
+    paymentDays: paymentDays,
+    minPrintsMono: val('minPrintsMono'),
+    minPrintsColor: val('minPrintsColor')
   };
 
-  var blanks = type==='monthly' ? monthlyAgreementBlanks(pdfDoc, values) : [];
+  var blanks = type==='monthly' ? monthlyAgreementBlanks(pdfDoc, values)
+    : type==='rental' ? rentalAgreementBlanks(pdfDoc, values)
+    : [];
   blanks.forEach(function(b){
     if(!b.value && b.value !== 0) return;
     var text = String(b.value);
@@ -2031,8 +2057,9 @@ async function buildAgreementPdf(){
     pdfLibDrawMixedRTL(b.page, text, b.xRight, y, font, fitSize, ink);
   });
 
-  // Appendix: same machines table as the order PDF, as its own page.
-  var appendixDoc = buildMachinesAppendixPdf();
+  // Appendix: same machines table as the order PDF, as its own page. The
+  // pay-per-print "שכירות" agreement's appendix omits the unit-price column.
+  var appendixDoc = buildMachinesAppendixPdf(type !== 'rental');
   var appendixBytes = appendixDoc.output('arraybuffer');
   var appendixPdf = await PDFDocument.load(appendixBytes);
   var copied = await pdfDoc.copyPages(appendixPdf, [0]);
@@ -2045,7 +2072,8 @@ async function buildAgreementPdf(){
 function buildAgreementFilename(){
   var name = sanitizeFilePart(val('custName'));
   var ono = sanitizeFilePart(val('orderNo'));
-  var parts = ['הסכם שכירות חודשית'];
+  var type = AGREEMENT_TYPE_BY_DEALDESC[val('dealDesc')];
+  var parts = [type==='rental' ? 'הסכם שכירות' : 'הסכם שכירות חודשית'];
   if(name) parts.push(name);
   if(ono) parts.push(ono);
   return parts.join(' - ') + '.pdf';
@@ -2118,7 +2146,11 @@ async function buildOrderPdf(){
   drawFieldGrid(doc, ctx, [
     [{label:'תיאור עסקה', value: val('dealDesc')}, {label:'תקופה', value: val('dealPeriod') ? (val('dealPeriod')+' חודשים') : ''}, {label:'סוג מכונה', value: val('dealMachineType')}],
     [{label:'מחיר פ"מ שחור', value: val('priceMono') ? (val('priceMono')+' ש"ח') : ''}, {label:'מחיר פ"ח צבע', value: val('priceColor') ? (val('priceColor')+' ש"ח') : ''}, {label:'מחיר פ"מ סריקה', value: val('priceScan') ? (val('priceScan')+' ש"ח') : ''}],
-    [{label:'מינימום צילומים שחור', value: val('minPrintsMono') ? (val('minPrintsMono')+' ('+minUnit+')') : ''}, {label:'מינימום צילומים צבע', value: val('minPrintsColor') ? (val('minPrintsColor')+' ('+minUnit+')') : ''}, null],
+    // NOTE: parens intentionally reversed ')'+minUnit+'(' — see hebFix()/
+    // drawMixedRTL() comments: jsPDF's R2L reverses character order within a
+    // Hebrew run but doesn't mirror neutral punctuation like ( ), so an
+    // authored "(חודשי)" next to a digit run renders visually as ")חודשי(".
+    [{label:'מינימום צילומים שחור', value: val('minPrintsMono') ? (val('minPrintsMono')+' )'+minUnit+'(') : ''}, {label:'מינימום צילומים צבע', value: val('minPrintsColor') ? (val('minPrintsColor')+' )'+minUnit+'(') : ''}, null],
     [{label:'הצמדה', value: val('linkage')}, {label:'LFM', value: checked('lfm') ? 'כן' : 'לא'}, {label:'טרייד אין', value: val('tradeInModel') ? (val('tradeInModel') + (val('tradeInCredit') ? (' · זיכוי '+fmt(val('tradeInCredit'))) : '')) : 'ללא'}]
   ], 3, {lineH:4.0, fontSize:8.3});
   var hasVol = val('volMono') || val('volColor');
@@ -2478,6 +2510,55 @@ function buildAssemblyFilename(){
   return parts.join(' - ') + '.pdf';
 }
 
+// Merges the order form and assembly form into a single two-page PDF (page 1
+// = order, page 2 = assembly) via pdf-lib, so the person shares/saves one
+// file instead of two.
+async function buildOrderPackagePdf(){
+  var orderDoc = await buildOrderPdf();
+  var assemblyDoc = await buildAssemblyPdf();
+  ensurePdfLibLoaded();
+  var PDFDocument = window.PDFLib.PDFDocument;
+  var merged = await PDFDocument.create();
+  var orderPdf = await PDFDocument.load(orderDoc.output('arraybuffer'));
+  var orderPages = await merged.copyPages(orderPdf, orderPdf.getPageIndices());
+  orderPages.forEach(function(p){ merged.addPage(p); });
+  var assemblyPdf = await PDFDocument.load(assemblyDoc.output('arraybuffer'));
+  var assemblyPages = await merged.copyPages(assemblyPdf, assemblyPdf.getPageIndices());
+  assemblyPages.forEach(function(p){ merged.addPage(p); });
+  var outBytes = await merged.save();
+  return new Blob([outBytes], {type:'application/pdf'});
+}
+function buildOrderPackageFilename(){
+  var name = sanitizeFilePart(val('custName'));
+  var ono = sanitizeFilePart(val('orderNo'));
+  var parts = ['הזמנה והרכבה'];
+  if(name) parts.push(name);
+  if(ono) parts.push(ono);
+  return parts.join(' - ') + '.pdf';
+}
+
+// Builds everything the person is about to share/save — the order+assembly
+// package, plus the agreement (when the deal description has a supported
+// template) — merged into one PDF so "preview" shows it all in one tab
+// without triggering a share sheet or a download.
+async function buildPreviewPdf(){
+  ensurePdfLibLoaded();
+  var PDFDocument = window.PDFLib.PDFDocument;
+  var merged = await PDFDocument.create();
+  var packageBlob = await buildOrderPackagePdf();
+  var packagePdf = await PDFDocument.load(await packageBlob.arrayBuffer());
+  var pkgPages = await merged.copyPages(packagePdf, packagePdf.getPageIndices());
+  pkgPages.forEach(function(p){ merged.addPage(p); });
+  if(AGREEMENT_TYPE_BY_DEALDESC[val('dealDesc')]){
+    var agreementBlob = await buildAgreementPdf();
+    var agreementPdf = await PDFDocument.load(await agreementBlob.arrayBuffer());
+    var agPages = await merged.copyPages(agreementPdf, agreementPdf.getPageIndices());
+    agPages.forEach(function(p){ merged.addPage(p); });
+  }
+  var outBytes = await merged.save();
+  return new Blob([outBytes], {type:'application/pdf'});
+}
+
 function wirePdfActionButton(id, buildFn, filenameFn, action){
   var el = document.getElementById(id);
   if(!el) return;
@@ -2500,24 +2581,22 @@ function wirePdfActionButton(id, buildFn, filenameFn, action){
     } finally { btn.disabled = false; btn.textContent = orig; }
   });
 }
-wirePdfActionButton('shareOrder', buildOrderPdf, buildOrderFilename, 'share');
-wirePdfActionButton('saveOrder', buildOrderPdf, buildOrderFilename, 'save');
-wirePdfActionButton('shareAssembly', buildAssemblyPdf, buildAssemblyFilename, 'share');
-wirePdfActionButton('saveAssembly', buildAssemblyPdf, buildAssemblyFilename, 'save');
+wirePdfActionButton('shareOrderPackage', buildOrderPackagePdf, buildOrderPackageFilename, 'share');
+wirePdfActionButton('saveOrderPackage', buildOrderPackagePdf, buildOrderPackageFilename, 'save');
 wirePdfActionButton('shareAgreement', buildAgreementPdf, buildAgreementFilename, 'share');
 wirePdfActionButton('saveAgreement', buildAgreementPdf, buildAgreementFilename, 'save');
 
-document.getElementById('printBoth').addEventListener('click', async function(){
+document.getElementById('previewBtn').addEventListener('click', async function(){
   if(blockIfMissingAccessories()) return;
   var btn = this, orig = btn.textContent;
-  btn.disabled = true; btn.textContent = 'מכין PDF…';
+  btn.disabled = true; btn.textContent = 'מכין תצוגה מקדימה…';
   try{
-    var doc1 = await buildOrderPdf();
-    await savePdfBlob(doc1.output('blob'), buildOrderFilename(), btn);
-    var doc2 = await buildAssemblyPdf();
-    await savePdfBlob(doc2.output('blob'), buildAssemblyFilename(), btn);
+    var blob = await buildPreviewPdf();
+    var url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
   } catch(err){
-    showValidationBanner(['לא הצלחנו להפיק את קובץ ה-PDF: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו שוב, ואם זה חוזר — רעננו את הדף.'], 'שגיאה בהפקת ה-PDF:');
+    showValidationBanner(['לא הצלחנו להפיק תצוגה מקדימה: ' + ((err&&err.message)||String(err)||'שגיאה לא ידועה') + '. נסו שוב, ואם זה חוזר — רעננו את הדף.'], 'שגיאה בתצוגה מקדימה:');
     console.error(err);
   } finally { btn.disabled = false; btn.textContent = orig; }
 });
