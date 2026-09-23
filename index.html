@@ -371,10 +371,6 @@ table.psTable th{background:#f4f1ec}
           <div class="field checkline" style="align-self:center"><input type="checkbox" id="lfm"><label for="lfm">LFM</label></div>
         </div>
         <div class="row">
-          <div class="field"><label>טרייד אין — סוג מכונה</label><input id="tradeInModel"></div>
-          <div class="field"><label>סה"כ לזיכוי (₪)</label><input id="tradeInCredit" type="number" step="0.01"></div>
-        </div>
-        <div class="row">
           <div class="field"><label>היקף עבודה — שחור/לבן (חודשי)</label><input id="volMono" type="number" min="0"></div>
           <div class="field"><label>היקף עבודה — צבע (חודשי)</label><input id="volColor" type="number" min="0"></div>
         </div>
@@ -545,7 +541,6 @@ table.psTable th{background:#f4f1ec}
       <div class="f"></div>
       <div class="f"><b>הצמדה:</b><span id="po_linkage"></span></div>
       <div class="f"><b>LFM:</b><span id="po_lfm"></span></div>
-      <div class="f"><b>טרייד אין:</b><span id="po_tradeIn"></span></div>
       <div class="f" id="po_volRow" style="grid-column:1/4"><b>היקף עבודה (ש/ל · צבע):</b><span id="po_vol"></span></div>
     </div>
     <div class="psNote" id="po_notesLine"></div>
@@ -1349,8 +1344,6 @@ function fillOrderPrint(){
   document.getElementById('po_priceScan').textContent = val('priceScan') ? (val('priceScan') + ' ש"ח') : '';
   document.getElementById('po_linkage').textContent = val('linkage');
   document.getElementById('po_lfm').textContent = checked('lfm') ? 'כן' : 'לא';
-  var tradeIn = val('tradeInModel') ? (val('tradeInModel') + (val('tradeInCredit') ? (' · זיכוי ' + fmt(val('tradeInCredit'))) : '')) : 'ללא';
-  document.getElementById('po_tradeIn').textContent = tradeIn;
   var hasVol = val('volMono') || val('volColor');
   document.getElementById('po_volRow').style.display = hasVol ? '' : 'none';
   if(hasVol) document.getElementById('po_vol').textContent = (val('volMono')||'0') + ' / ' + (val('volColor')||'0');
@@ -2151,7 +2144,7 @@ async function buildOrderPdf(){
     // Hebrew run but doesn't mirror neutral punctuation like ( ), so an
     // authored "(חודשי)" next to a digit run renders visually as ")חודשי(".
     [{label:'מינימום צילומים שחור', value: val('minPrintsMono') ? (val('minPrintsMono')+' )'+minUnit+'(') : ''}, {label:'מינימום צילומים צבע', value: val('minPrintsColor') ? (val('minPrintsColor')+' )'+minUnit+'(') : ''}, null],
-    [{label:'הצמדה', value: val('linkage')}, {label:'LFM', value: checked('lfm') ? 'כן' : 'לא'}, {label:'טרייד אין', value: val('tradeInModel') ? (val('tradeInModel') + (val('tradeInCredit') ? (' · זיכוי '+fmt(val('tradeInCredit'))) : '')) : 'ללא'}]
+    [{label:'הצמדה', value: val('linkage')}, {label:'LFM', value: checked('lfm') ? 'כן' : 'לא'}, null]
   ], 3, {lineH:4.0, fontSize:8.3});
   var hasVol = val('volMono') || val('volColor');
   if(hasVol){
